@@ -1,0 +1,10 @@
+LualtekRAK3172	KEYWORD1
+getUplinkInterval	KEYWORD2
+handleChangeDutyCycle	KEYWORD2
+join	KEYWORD2
+onDownlinkReceived	KEYWORD2
+send	KEYWORD2
+setup	KEYWORD2
+setupTimers	KEYWORD2
+DutyCycleHandler	KEYWORD1
+changeDutyCycle	KEYWORD2

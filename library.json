@@ -1,0 +1,22 @@
+{
+  "name": "lualtek-rak3172",
+  "version": "0.0.1",
+  "description": "An opinionated wrapper around RUI3 APIs",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/lualtek/lualtek-rak3172.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Lualtek",
+      "email": "dev@lualtek.io",
+      "url": "https://www.lualtek.io",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "ststm32"
+}
