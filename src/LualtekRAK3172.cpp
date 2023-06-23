@@ -126,6 +126,10 @@ bool LualtekRAK3172::setup()
 
 bool LualtekRAK3172::join()
 {
+  // Set the data rate to 0 (SF12, BW125KHz) for joining
+  // Then let adr handle the data rate
+  api.lorawan.dr.set(0);
+
   delay(random(500, 8000));
   if (!api.lorawan.join())
   {
@@ -138,26 +142,23 @@ bool LualtekRAK3172::join()
   {
     debugStream->print("Wait for LoRaWAN join...");
     api.lorawan.join();
-    delay(10000);
+    delay(5000);
   }
 
   if (!api.lorawan.adr.set(true))
   {
     debugStream->printf("LoRaWan Settings - set adaptive data rate is incorrect! \r\n");
-    return false;
   }
 
   if (!api.lorawan.rety.set(1))
   {
     debugStream->printf("LoRaWan Settings - set retry times is incorrect! \r\n");
-    return false;
   }
 
   // Disable confirmation mode
   if (!api.lorawan.cfm.set(false))
   {
     debugStream->printf("LoRaWan Settings - set confirm mode is incorrect! \r\n");
-    return false;
   }
 
   api.lorawan.daddr.get(assigned_dev_addr, 4);
@@ -190,7 +191,6 @@ bool LualtekRAK3172::setupTimers(void (*callback)())
 
 bool LualtekRAK3172::send(uint8_t size, uint8_t *data, uint8_t fPort)
 {
-  /** Send the data package */
   if (api.lorawan.send(size, data, fPort, false))
   {
     debugStream->println("Sending is requested");
