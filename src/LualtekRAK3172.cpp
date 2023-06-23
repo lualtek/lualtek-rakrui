@@ -126,6 +126,7 @@ bool LualtekRAK3172::setup()
 
 bool LualtekRAK3172::join()
 {
+  // TODO: remove when RAK implments nbtrials
   // Set the data rate to 0 (SF12, BW125KHz) for joining
   // Then let adr handle the data rate
   api.lorawan.dr.set(0);
