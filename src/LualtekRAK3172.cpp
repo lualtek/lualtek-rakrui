@@ -42,7 +42,8 @@ void LualtekRAK3172::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
     debugStream->println("Received downlink for changing duty cycle");
     handleChangeDutyCycle(payload->Buffer[0]);
     api.system.timer.stop(RAK_TIMER_0);
-    if (api.system.timer.start(RAK_TIMER_0, getUplinkInterval(), NULL) != true) {
+    if (api.system.timer.start(RAK_TIMER_0, getUplinkInterval(), NULL) != true)
+    {
       debugStream->println("Error starting timer");
     }
     break;
@@ -167,7 +168,7 @@ bool LualtekRAK3172::join()
   debugStream->printf("Duty cycle is %s\r\n", api.lorawan.dcs.get() ? "ON" : "OFF");                                                                     // Check Duty Cycle status
   debugStream->printf("Packet is %s\r\n", api.lorawan.cfm.get() ? "CONFIRMED" : "UNCONFIRMED");                                                          // Check Confirm status
   debugStream->printf("Device Address is %02X%02X%02X%02X\r\n", assigned_dev_addr[0], assigned_dev_addr[1], assigned_dev_addr[2], assigned_dev_addr[3]); // Check Device Address
-  debugStream->printf("Uplink period is %ums\r\n", getUplinkInterval());                                                                                     // Check Uplink period
+  debugStream->printf("Uplink period is %ums\r\n", getUplinkInterval());                                                                                 // Check Uplink period
   debugStream->println("");
 
   return true;
@@ -195,13 +196,11 @@ bool LualtekRAK3172::send(uint8_t size, uint8_t *data, uint8_t fPort)
   if (api.lorawan.send(size, data, fPort, false))
   {
     debugStream->println("Sending is requested");
-  }
-  else
-  {
-    debugStream->println("Sending failed");
+    return true;
   }
 
-  return true;
+  debugStream->println("Sending failed");
+  return false;
 }
 
 int LualtekRAK3172::getUplinkInterval()
