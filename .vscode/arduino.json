@@ -2,5 +2,6 @@
     "configuration": "debug=l0,supportat=1",
     "board": "rak_rui:stm32:WisDuoRAK3172EvaluationBoard",
     "sketch": "src/src.ino",
-    "output": "build"
+    "output": "build",
+    "port": "/dev/tty.usbserial-14240"
 }
