@@ -1,6 +1,6 @@
 {
   "name": "lualtek-rak3172",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An opinionated wrapper around RUI3 APIs",
   "repository": {
     "type": "git",

@@ -5,6 +5,18 @@ bool isDutyCycleIndex(unsigned int commandIndex)
   return commandIndex >= 0 && commandIndex <= sizeof(dutyCycleCommandTable) - 1;
 }
 
+bool isKeyEmpty(const uint8_t *array, size_t size)
+{
+  for (size_t i = 0; i < size; i++)
+  {
+    if (array[i] != 0x00)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 LualtekRAK3172::LualtekRAK3172(
     const uint8_t appEui[8],
     const uint8_t appKey[16],
@@ -92,7 +104,7 @@ bool LualtekRAK3172::setup()
   }
 
   // Set the device EUI if available
-  if (devEui == NULL)
+  if (isKeyEmpty(devEui, 8))
   {
     api.lorawan.deui.get(devEui, 8);
   }
