@@ -4,6 +4,7 @@ handleChangeDutyCycle	KEYWORD2
 join	KEYWORD2
 onDownlinkReceived	KEYWORD2
 send	KEYWORD2
+setClass	KEYWORD2
 setup	KEYWORD2
 setupTimers	KEYWORD2
 DutyCycleHandler	KEYWORD1

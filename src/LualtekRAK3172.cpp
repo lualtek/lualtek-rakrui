@@ -51,16 +51,16 @@ void LualtekRAK3172::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
   switch (payload->Port)
   {
   case DOWNLINK_ACTION_CHANGE_INTERVAL_PORT:
-    debugStream->println("Received downlink for changing duty cycle");
+    debugStream->println(F("Received downlink for changing duty cycle"));
     handleChangeDutyCycle(payload->Buffer[0]);
     api.system.timer.stop(RAK_TIMER_0);
     if (api.system.timer.start(RAK_TIMER_0, getUplinkInterval(), NULL) != true)
     {
-      debugStream->println("Error starting timer");
+      debugStream->println(F("Error starting timer"));
     }
     break;
   case DOWNLINK_ACTION_REJOIN_PORT:
-    debugStream->println("Received downlink for rejoin. Rejoining...");
+    debugStream->println(F("Received downlink for rejoin. Rejoining..."));
     api.system.reboot();
     break;
   default:
@@ -71,8 +71,8 @@ void LualtekRAK3172::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
 bool LualtekRAK3172::setup()
 {
   delay(1500);
-  debugStream->println("Lualtek RAK3172 Setup");
-  debugStream->println("------------------------");
+  debugStream->println(F("Lualtek RAK3172 Setup"));
+  debugStream->println(F("------------------------"));
   // Setup duty cycle from EEPROM if available or use default
   uint8_t uplinkIntervalFlash[1];
   api.system.flash.get(0, uplinkIntervalFlash, 1);
@@ -121,9 +121,8 @@ bool LualtekRAK3172::setup()
     return false;
   }
 
-  if (!api.lorawan.deviceClass.set(RAK_LORA_CLASS_A))
+  if (!setClass(RAK_LORA_CLASS_A))
   {
-    debugStream->printf("LoRaWan Settings - set device class is incorrect! \r\n");
     return false;
   }
 
@@ -181,7 +180,18 @@ bool LualtekRAK3172::join()
   debugStream->printf("Packet is %s\r\n", api.lorawan.cfm.get() ? "CONFIRMED" : "UNCONFIRMED");                                                          // Check Confirm status
   debugStream->printf("Device Address is %02X%02X%02X%02X\r\n", assigned_dev_addr[0], assigned_dev_addr[1], assigned_dev_addr[2], assigned_dev_addr[3]); // Check Device Address
   debugStream->printf("Uplink period is %ums\r\n", getUplinkInterval());                                                                                 // Check Uplink period
-  debugStream->println("");
+  debugStream->println(F(""));
+
+  return true;
+}
+
+bool LualtekRAK3172::setClass(RAK_LORA_CLASS classType)
+{
+  if (!api.lorawan.deviceClass.set(classType))
+  {
+    debugStream->printf("LoRaWan Settings - set device class is incorrect! \r\n");
+    return false;
+  }
 
   return true;
 }
@@ -207,11 +217,11 @@ bool LualtekRAK3172::send(uint8_t size, uint8_t *data, uint8_t fPort)
 {
   if (api.lorawan.send(size, data, fPort, false))
   {
-    debugStream->println("Sending is requested");
+    debugStream->println(F("Sending is requested"));
     return true;
   }
 
-  debugStream->println("Sending failed");
+  debugStream->println(F("Sending failed"));
   return false;
 }
 

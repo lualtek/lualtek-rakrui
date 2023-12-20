@@ -28,6 +28,7 @@ public:
 
   bool setup();
   bool join();
+  bool setClass(RAK_LORA_CLASS classType);
   // Setup time passing referenc callback for uplinkRoutine
   bool setupTimers(void (*uplinkRoutine)());
   void onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload);
