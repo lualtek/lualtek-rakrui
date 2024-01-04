@@ -80,26 +80,26 @@ bool LualtekRAK3172::setup()
 
   if (!api.system.lpm.set(1))
   {
-    debugStream->printf("LoRaWan Settings - set low power mode is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set low power mode is incorrect!"));
     return false;
   }
 
   // https://docs.rakwireless.com/RUI3/LoRaWAN/#nwm
   if (!api.lorawan.nwm.set(1))
   {
-    debugStream->printf("LoRaWan Settings - set network working mode is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set network working mode is incorrect!"));
     return false;
   }
 
   if (!api.lorawan.appeui.set(appEui, 8))
   {
-    debugStream->printf("LoRaWan Settings - set application EUI is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set application EUI is incorrect!"));
     return false;
   }
 
   if (!api.lorawan.appkey.set(appKey, 16))
   {
-    debugStream->printf("LoRaWan Settings - set application key is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set application key is incorrect!"));
     return false;
   }
 
@@ -111,13 +111,13 @@ bool LualtekRAK3172::setup()
 
   if (!api.lorawan.deui.set(devEui, 8))
   {
-    debugStream->printf("LoRaWan Settings - set device EUI is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set device EUI is incorrect!"));
     return false;
   }
 
   if (!api.lorawan.band.set(RAK_REGION_EU868))
   {
-    debugStream->printf("LoRaWan Settings - set band is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set band is incorrect!"));
     return false;
   }
 
@@ -129,7 +129,7 @@ bool LualtekRAK3172::setup()
   // Set the network join mode to OTAA
   if (!api.lorawan.njm.set(RAK_LORA_OTAA))
   {
-    debugStream->printf("LoRaWan Settings - set network join mode is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set network join mode is incorrect!"));
     return false;
   }
 
@@ -146,32 +146,32 @@ bool LualtekRAK3172::join()
   delay(random(500, 8000));
   if (!api.lorawan.join())
   {
-    debugStream->printf("LoRaWan Settings - join fail! \r\n");
+    debugStream->println(F("LoRaWan Settings - join fail!"));
     return false;
   }
 
   /** Wait for Join success */
   while (api.lorawan.njs.get() == 0)
   {
-    debugStream->print("Wait for LoRaWAN join...");
+    debugStream->print(F("Wait for LoRaWAN join..."));
     api.lorawan.join();
     delay(5000);
   }
 
   if (!api.lorawan.adr.set(true))
   {
-    debugStream->printf("LoRaWan Settings - set adaptive data rate is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set adaptive data rate is incorrect!"));
   }
 
   if (!api.lorawan.rety.set(1))
   {
-    debugStream->printf("LoRaWan Settings - set retry times is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set retry times is incorrect!"));
   }
 
   // Disable confirmation mode
   if (!api.lorawan.cfm.set(false))
   {
-    debugStream->printf("LoRaWan Settings - set confirm mode is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set confirm mode is incorrect!"));
   }
 
   api.lorawan.daddr.get(assigned_dev_addr, 4);
@@ -189,7 +189,7 @@ bool LualtekRAK3172::setClass(RAK_LORA_CLASS classType)
 {
   if (!api.lorawan.deviceClass.set(classType))
   {
-    debugStream->printf("LoRaWan Settings - set device class is incorrect! \r\n");
+    debugStream->println(F("LoRaWan Settings - set device class is incorrect!"));
     return false;
   }
 
@@ -200,13 +200,13 @@ bool LualtekRAK3172::setupTimers(void (*callback)())
 {
   if (api.system.timer.create(RAK_TIMER_0, (RAK_TIMER_HANDLER)callback, RAK_TIMER_PERIODIC) != true)
   {
-    debugStream->printf("LoRaWan Settings - Creating timer failed.\r\n");
+    debugStream->println(F("LoRaWan Settings - Creating timer failed."));
     return false;
   }
 
   if (api.system.timer.start(RAK_TIMER_0, getUplinkInterval(), NULL) != true)
   {
-    debugStream->printf("LoRaWan Settings - Starting timer failed.\r\n");
+    debugStream->println(F("LoRaWan Settings - Starting timer failed."));
     return false;
   }
 
@@ -230,23 +230,90 @@ int LualtekRAK3172::getUplinkInterval()
   return dutyCycleHandler.uplinkInterval;
 }
 
-Stream &LualtekRAK3172::getDummyDebugStream()
+int LualtekRAK3172::getBattery()
 {
-  static Stream *dummyDebugStream = nullptr;
-  if (dummyDebugStream == nullptr)
+  analogReadResolution(12);
+  float max, ref;
+
+  switch (udrv_adc_get_resolution())
   {
-    class DummyStream : public Stream
-    {
-    public:
-      int available() { return 0; }
-      int read() { return -1; }
-      int peek() { return -1; }
-      void flush() {}
-      void printf(const char *, ...) {}
-      size_t write(uint8_t) { return 1; }
-    };
-    static DummyStream instance;
-    dummyDebugStream = &instance;
+  case UDRV_ADC_RESOLUTION_6BIT:
+  {
+    max = 64.0;
+    break;
   }
-  return *dummyDebugStream;
+  case UDRV_ADC_RESOLUTION_8BIT:
+  {
+    max = 256.0;
+    break;
+  }
+  case UDRV_ADC_RESOLUTION_10BIT:
+  default:
+  {
+    max = 1024.0;
+    break;
+  }
+  case UDRV_ADC_RESOLUTION_12BIT:
+  {
+    max = 4096.0;
+    break;
+  }
+  case UDRV_ADC_RESOLUTION_14BIT:
+  {
+    max = 16384.0;
+    break;
+  }
+  }
+
+  switch (udrv_adc_get_mode())
+  {
+  case UDRV_ADC_MODE_DEFAULT:
+  default:
+  {
+#ifdef rak11720
+    ref = 2.0;
+#else
+    ref = 3.6;
+#endif
+    break;
+  }
+#ifdef rak11720
+  case UDRV_ADC_MODE_1_5:
+  {
+    ref = 1.5;
+    break;
+  }
+#else
+  case UDRV_ADC_MODE_3_3:
+  {
+    ref = 3.3;
+    break;
+  }
+  case UDRV_ADC_MODE_3_0:
+  {
+    ref = 3.0;
+    break;
+  }
+  case UDRV_ADC_MODE_2_4:
+  {
+    ref = 2.4;
+    break;
+  }
+  case UDRV_ADC_MODE_1_8:
+  {
+    ref = 1.8;
+    break;
+  }
+  case UDRV_ADC_MODE_1_2:
+  {
+    ref = 1.2;
+    break;
+  }
+#endif
+  }
+
+  int adc_value = analogRead(WB_A0);
+  analogReadResolution(10);
+
+  return ref * (((float)adc_value) / max) * (5.0f) / (3.0f);
 }
