@@ -1,5 +1,5 @@
 LualtekRAK3172	KEYWORD1
-getBattery	KEYWORD2
+getBatteryVoltage	KEYWORD2
 getUplinkInterval	KEYWORD2
 handleChangeDutyCycle	KEYWORD2
 join	KEYWORD2

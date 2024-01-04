@@ -230,7 +230,7 @@ int LualtekRAK3172::getUplinkInterval()
   return dutyCycleHandler.uplinkInterval;
 }
 
-int LualtekRAK3172::getBattery()
+int LualtekRAK3172::getBatteryVoltage()
 {
   analogReadResolution(12);
   float max, ref;
@@ -315,5 +315,5 @@ int LualtekRAK3172::getBattery()
   int adc_value = analogRead(WB_A0);
   analogReadResolution(10);
 
-  return ref * (((float)adc_value) / max) * (5.0f) / (3.0f);
+  return (ref * (((float)adc_value) / max) * (5.0f) / (3.0f)) * 1000;
 }

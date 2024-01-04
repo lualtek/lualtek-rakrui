@@ -100,10 +100,10 @@ public:
   int getUplinkInterval();
 
   /**
-   * @brief Gets the battery level.
+   * @brief Gets the battery voltage in mV.
    * @return The battery level as an integer.
    */
-  int getBattery();
+  int getBatteryVoltage();
 
 private:
   uint8_t devEui[8];
