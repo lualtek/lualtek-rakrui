@@ -12,10 +12,6 @@ Tiny_BME280 bme;
 
 void uplinkRoutine();
 
-// De-comment this if want logging
-#define DEBUG_SERIAL_ENABLED true
-// De-comment this to activate custom DEVEUI
-#define CUSTOM_DEVEUI true
 // De-comment this to activate custom DEVEUI (WARNING: not tested)
 uint8_t DEVEUI[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t APPEUI[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -23,14 +19,10 @@ uint8_t APPKEY[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 
 #define debugSerial Serial
 
-#if defined(DEBUG_SERIAL_ENABLED) && defined(CUSTOM_DEVEUI)
+#if defined(CUSTOM_DEVEUI)
 LualtekRAK3172 lltek(DEVEUI, APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
-#elif defined(DEBUG_SERIAL_ENABLED)
-LualtekRAK3172 lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
-#elif defined(CUSTOM_DEVEUI)
-LualtekRAK3172 lltek(DEVEUI, APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX);
 #else
-LualtekRAK3172 lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX);
+LualtekRAK3172 lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
 #endif
 
 #define POWER_UP_SENSOR_PIN (WB_IO2)
