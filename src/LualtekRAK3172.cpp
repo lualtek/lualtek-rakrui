@@ -315,5 +315,6 @@ int LualtekRAK3172::getBatteryVoltage()
   int adc_value = analogRead(WB_A0);
   analogReadResolution(10);
 
-  return (ref * (((float)adc_value) / max) * (5.0f) / (3.0f)) * 1000;
+  // 2.25 voltage divider calculated by tests
+  return (ref * (((float)adc_value) / max) * 2.25f) * 1000;
 }
