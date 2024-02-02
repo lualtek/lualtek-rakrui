@@ -1,8 +1,29 @@
 #include "LualtekRAK3172.h"
 
+// LUT1_EV_Full Li-ION/LiPo scale up to 4.3v, 10 loops of sampling
+const int adcValues[] = {1583, 1626, 1668, 1709, 1750, 1791, 1832, 1872, 1911, 1950, 1989, 2027, 2065, 2103, 2140, 2177, 2214, 2252, 2285}; // ADC readings
+const float batteryValues[] = {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3};              // Corresponding battery values in volts
+const int tableSize = sizeof(adcValues) / sizeof(adcValues[0]);
+
 bool isDutyCycleIndex(unsigned int commandIndex)
 {
   return commandIndex >= 0 && commandIndex <= sizeof(dutyCycleCommandTable) - 1;
+}
+
+int convertToBatteryVoltage(int adcReading)
+{
+  for (int i = 0; i < tableSize - 1; ++i)
+  {
+    if (adcReading >= adcValues[i] && adcReading <= adcValues[i + 1])
+    {
+      // Linear interpolation to get the battery voltage
+      float slope = (batteryValues[i + 1] - batteryValues[i]) / (adcValues[i + 1] - adcValues[i]);
+      float batteryVoltage = batteryValues[i] + slope * (adcReading - adcValues[i]);
+      return batteryVoltage;
+    }
+  }
+  // Return the minimum battery voltage if the ADC reading is below the minimum in the table
+  return batteryValues[0] * 1000;
 }
 
 bool isKeyEmpty(const uint8_t *array, size_t size)
@@ -233,88 +254,7 @@ int LualtekRAK3172::getUplinkInterval()
 int LualtekRAK3172::getBatteryVoltage()
 {
   analogReadResolution(12);
-  float max, ref;
-
-  switch (udrv_adc_get_resolution())
-  {
-  case UDRV_ADC_RESOLUTION_6BIT:
-  {
-    max = 64.0;
-    break;
-  }
-  case UDRV_ADC_RESOLUTION_8BIT:
-  {
-    max = 256.0;
-    break;
-  }
-  case UDRV_ADC_RESOLUTION_10BIT:
-  default:
-  {
-    max = 1024.0;
-    break;
-  }
-  case UDRV_ADC_RESOLUTION_12BIT:
-  {
-    max = 4096.0;
-    break;
-  }
-  case UDRV_ADC_RESOLUTION_14BIT:
-  {
-    max = 16384.0;
-    break;
-  }
-  }
-
-  switch (udrv_adc_get_mode())
-  {
-  case UDRV_ADC_MODE_DEFAULT:
-  default:
-  {
-#ifdef rak11720
-    ref = 2.0;
-#else
-    ref = 3.6;
-#endif
-    break;
-  }
-#ifdef rak11720
-  case UDRV_ADC_MODE_1_5:
-  {
-    ref = 1.5;
-    break;
-  }
-#else
-  case UDRV_ADC_MODE_3_3:
-  {
-    ref = 3.3;
-    break;
-  }
-  case UDRV_ADC_MODE_3_0:
-  {
-    ref = 3.0;
-    break;
-  }
-  case UDRV_ADC_MODE_2_4:
-  {
-    ref = 2.4;
-    break;
-  }
-  case UDRV_ADC_MODE_1_8:
-  {
-    ref = 1.8;
-    break;
-  }
-  case UDRV_ADC_MODE_1_2:
-  {
-    ref = 1.2;
-    break;
-  }
-#endif
-  }
-
   int adc_value = analogRead(WB_A0);
   analogReadResolution(10);
-
-  // 2.25 voltage divider calculated by tests
-  return (ref * (((float)adc_value) / max) * 2.25f) * 1000;
+  return convertToBatteryVoltage(adc_value);
 }
