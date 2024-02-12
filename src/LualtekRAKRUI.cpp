@@ -1,4 +1,4 @@
-#include "LualtekRAK3172.h"
+#include "LualtekRAKRUI.h"
 
 // LUT1_EV_Full Li-ION/LiPo scale up to 4.3v, 10 loops of sampling
 const int adcValues[] = {1583, 1626, 1668, 1709, 1750, 1791, 1832, 1872, 1911, 1950, 1989, 2027, 2065, 2103, 2140, 2177, 2214, 2252, 2285}; // ADC readings
@@ -38,7 +38,7 @@ bool isKeyEmpty(const uint8_t *array, size_t size)
   return true;
 }
 
-LualtekRAK3172::LualtekRAK3172(
+LualtekRAKRUI::LualtekRAKRUI(
     const uint8_t appEui[8],
     const uint8_t appKey[16],
     lualtek_dowlink_command_dutycycle_index_t dutyCycleIndex,
@@ -49,7 +49,7 @@ LualtekRAK3172::LualtekRAK3172(
   memcpy(this->appKey, appKey, 16);
 }
 
-LualtekRAK3172::LualtekRAK3172(
+LualtekRAKRUI::LualtekRAKRUI(
     const uint8_t devEui[8],
     const uint8_t appEui[8],
     const uint8_t appKey[16],
@@ -62,12 +62,12 @@ LualtekRAK3172::LualtekRAK3172(
   memcpy(this->appKey, appKey, 16);
 }
 
-void LualtekRAK3172::handleChangeDutyCycle(int commandIndex)
+void LualtekRAKRUI::handleChangeDutyCycle(int commandIndex)
 {
   dutyCycleHandler.changeDutyCycle(commandIndex);
 }
 
-void LualtekRAK3172::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
+void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
 {
   switch (payload->Port)
   {
@@ -89,10 +89,10 @@ void LualtekRAK3172::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
   }
 }
 
-bool LualtekRAK3172::setup()
+bool LualtekRAKRUI::setup()
 {
   delay(1500);
-  debugStream->println(F("Lualtek RAK3172 Setup"));
+  debugStream->println(F("Lualtek RAKRUI Setup"));
   debugStream->println(F("------------------------"));
   // Setup duty cycle from EEPROM if available or use default
   uint8_t uplinkIntervalFlash[1];
@@ -157,7 +157,7 @@ bool LualtekRAK3172::setup()
   return true;
 }
 
-bool LualtekRAK3172::join()
+bool LualtekRAKRUI::join()
 {
   // TODO: remove when RAK implments nbtrials
   // Set the data rate to 0 (SF12, BW125KHz) for joining
@@ -206,7 +206,7 @@ bool LualtekRAK3172::join()
   return true;
 }
 
-bool LualtekRAK3172::setClass(RAK_LORA_CLASS classType)
+bool LualtekRAKRUI::setClass(RAK_LORA_CLASS classType)
 {
   if (!api.lorawan.deviceClass.set(classType))
   {
@@ -217,7 +217,7 @@ bool LualtekRAK3172::setClass(RAK_LORA_CLASS classType)
   return true;
 }
 
-bool LualtekRAK3172::setupTimers(void (*callback)())
+bool LualtekRAKRUI::setupTimers(void (*callback)())
 {
   if (api.system.timer.create(RAK_TIMER_0, (RAK_TIMER_HANDLER)callback, RAK_TIMER_PERIODIC) != true)
   {
@@ -234,7 +234,7 @@ bool LualtekRAK3172::setupTimers(void (*callback)())
   return true;
 }
 
-bool LualtekRAK3172::send(uint8_t size, uint8_t *data, uint8_t fPort)
+bool LualtekRAKRUI::send(uint8_t size, uint8_t *data, uint8_t fPort)
 {
   if (api.lorawan.send(size, data, fPort, false))
   {
@@ -246,12 +246,12 @@ bool LualtekRAK3172::send(uint8_t size, uint8_t *data, uint8_t fPort)
   return false;
 }
 
-int LualtekRAK3172::getUplinkInterval()
+int LualtekRAKRUI::getUplinkInterval()
 {
   return dutyCycleHandler.uplinkInterval;
 }
 
-int LualtekRAK3172::getBatteryVoltage()
+int LualtekRAKRUI::getBatteryVoltage()
 {
   analogReadResolution(12);
   int adc_value = analogRead(WB_A0);

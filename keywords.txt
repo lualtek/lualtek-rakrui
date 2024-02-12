@@ -1,4 +1,4 @@
-LualtekRAK3172	KEYWORD1
+LualtekRAKRUI	KEYWORD1
 getBatteryVoltage	KEYWORD2
 getUplinkInterval	KEYWORD2
 handleChangeDutyCycle	KEYWORD2

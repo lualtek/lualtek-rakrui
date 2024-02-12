@@ -1,5 +1,5 @@
-#ifndef _LUALTEKRAK3172_H_
-#define _LUALTEKRAK3172_H_
+#ifndef _LualtekRAKRUI_H_
+#define _LualtekRAKRUI_H_
 
 #include <Arduino.h>
 #include "DutyCycleHandler.h"
@@ -13,33 +13,33 @@ enum lualtek_downlink_command_ports_t
 };
 
 /**
- * @brief Represents the Lualtek RAK3172 LoRaWAN module for Arduino.
+ * @brief Represents the LualtekRAKRUI LoRaWAN module for Arduino.
  */
-class LualtekRAK3172
+class LualtekRAKRUI
 {
 public:
   /**
-   * @brief Creates an instance of LualtekRAK3172.
+   * @brief Creates an instance of LualtekRAKRUI.
    * @param appEui The application EUI.
    * @param appKey The application key.
    * @param dutyCycleIndex The duty cycle index.
    * @param debugStream Debug stream.
    */
-  LualtekRAK3172(
+  LualtekRAKRUI(
       const uint8_t appEui[8],
       const uint8_t appKey[16],
       lualtek_dowlink_command_dutycycle_index_t dutyCycleIndex,
       Stream *debugStream);
 
   /**
-   * @brief Creates an instance of LualtekRAK3172 with a specified device EUI.
+   * @brief Creates an instance of LualtekRAKRUI with a specified device EUI.
    * @param devEui The device EUI.
    * @param appEui The application EUI.
    * @param appKey The application key.
    * @param dutyCycleIndex The duty cycle index.
    * @param debugStream Debug stream.
    */
-  LualtekRAK3172(
+  LualtekRAKRUI(
       const uint8_t devEui[8],
       const uint8_t appEui[8],
       const uint8_t appKey[16],

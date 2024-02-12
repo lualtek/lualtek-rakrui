@@ -4,7 +4,7 @@
  *
  * NOTE: this example uses a custom IO expander that is powered on/off by WB_IO2: https://github.com/piecol/Wisblock_IO_extention_10x23
  **/
-#include "LualtekRAK3172.h"
+#include "LualtekRAKRUI.h"
 #include <Adafruit_Sensor.h>
 #include <Tiny_BME280.h> // https://github.com/jasonacox/Tiny_BME280_Library
 
@@ -20,9 +20,9 @@ uint8_t APPKEY[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 #define debugSerial Serial
 
 #if defined(CUSTOM_DEVEUI)
-LualtekRAK3172 lltek(DEVEUI, APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
+LualtekRAKRUI lltek(DEVEUI, APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
 #else
-LualtekRAK3172 lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
+LualtekRAKRUI lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
 #endif
 
 #define POWER_UP_SENSOR_PIN (WB_IO2)
@@ -75,13 +75,13 @@ void setup()
 
   if (!lltek.setup())
   {
-    debugSerial.println("RAK3172 setup failed!");
+    debugSerial.println("Lualtek RAKRUI setup failed!");
     return;
   }
 
   if (!lltek.join())
   {
-    debugSerial.println("RAK3172 join failed!");
+    debugSerial.println("Lualtek RAKRUI join failed!");
     return;
   }
 
@@ -90,7 +90,7 @@ void setup()
 
   if (!lltek.setupTimers(*uplinkRoutine))
   {
-    debugSerial.println("RAK3172 setup timers failed!");
+    debugSerial.println("Lualtek RAKRUI setup timers failed!");
     return;
   }
 }
