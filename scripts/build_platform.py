@@ -139,22 +139,29 @@ def install_dependencies():
 
 
 def test_examples_in_folder(folderpath, fqbn, library_name):
-    for example in sorted(os.listdir(folderpath)):
-        examplepath = folderpath + "/" + example
-        if os.path.isdir(examplepath):
-            test_examples_in_folder(examplepath, fqbn, library_name)
-            continue
-        if not examplepath.endswith(".ino"):
-            continue
+    # Get all the folders in the example folders with a .ino file
+    folders_in_examples_folder = [
+        folderpath + "/" + example
+        for example in os.listdir(folderpath)
+        if os.path.isdir(folderpath + "/" + example)
+        and os.path.exists(folderpath + "/" + example + "/" + example + ".ino")
+    ]
 
-        print("\t" + example, end=" ")
+    for single_example_folder in folders_in_examples_folder:
+        print("\t" + single_example_folder, end=" ")
 
         # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
         run_or_die(
-            f"cp -r {BUILD_DIR}/src/* {examplepath}/{library_name}",
+            f"cp -r {folderpath}/src/* {single_example_folder}/{library_name}",
             "FAILED to copy library to example folder",
         )
 
+        examplepath = (
+            single_example_folder
+            + "/"
+            + os.path.basename(single_example_folder)
+            + ".ino"
+        )
         cmd = ["arduino-cli", "compile", "--fqbn", fqbn, examplepath]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         r = proc.wait()
