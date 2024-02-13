@@ -28,7 +28,6 @@ import collections
 BUILD_DIR = ""
 CROSS = "\N{cross mark}"
 CHECK = "\N{check mark}"
-SUCCESS = False
 LIBRARY_NAME = ""
 EXAMPLES_FOLDER = ""
 
@@ -110,9 +109,9 @@ def run_or_die(cmd, error):
         exit(-1)
 
 
-def get_library_name():
+def get_library_name(build_dir):
     try:
-        libprop = open(os.path.join(BUILD_DIR, "library.properties"))
+        libprop = open(os.path.join(build_dir, "library.properties"))
         for line in libprop:
             if line.startswith("name="):
                 return line.replace("name=", "").strip()
@@ -121,9 +120,9 @@ def get_library_name():
     return None
 
 
-def install_dependencies():
+def install_dependencies(build_dir):
     try:
-        libprop = open(os.path.join(BUILD_DIR, "library.properties"))
+        libprop = open(os.path.join(build_dir, "library.properties"))
         for line in libprop:
             if line.startswith("depends="):
                 deps = line.replace("depends=", "").split(",")
@@ -139,7 +138,7 @@ def install_dependencies():
         pass
 
 
-def test_examples_in_folder(examples_folder, fqbn, library_name):
+def test_examples_in_folder(examples_folder, fqbn, library_name, build_dir):
     # Get all the folders in the example folders with a .ino file
     folders_in_examples_folder = [
         examples_folder + "/" + example
@@ -150,7 +149,7 @@ def test_examples_in_folder(examples_folder, fqbn, library_name):
 
     # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
     run_or_die(
-        f"cp -r {BUILD_DIR}/src/* {examples_folder}/{library_name}",
+        f"cp -r {build_dir}/src/* {examples_folder}/{library_name}",
         "FAILED to copy library to example folder",
     )
 
@@ -174,10 +173,9 @@ def test_examples_in_folder(examples_folder, fqbn, library_name):
             ColorPrint.print_fail(CROSS)
             ColorPrint.print_fail(out.decode("utf-8"))
             ColorPrint.print_fail(err.decode("utf-8"))
-            SUCCESS = True
 
 
-def setup_arduino_cli():
+def setup_arduino_cli(build_dir):
     print()
     ColorPrint.print_info("#" * 40)
     print("INSTALLING ARDUINO BOARDS")
@@ -192,7 +190,7 @@ def setup_arduino_cli():
     ColorPrint.print_info("#" * 40)
     print("INSTALLING DEPENDENCIES")
     ColorPrint.print_info("#" * 40)
-    install_dependencies()
+    install_dependencies(build_dir)
     ColorPrint.print_info("Libraries installed")
 
 
@@ -207,10 +205,10 @@ def main():
     EXAMPLES_FOLDER = os.path.join(BUILD_DIR, "examples")
     ColorPrint.print_info("Examples folder: " + EXAMPLES_FOLDER)
 
-    LIBRARY_NAME = get_library_name()
+    LIBRARY_NAME = get_library_name(BUILD_DIR)
     ColorPrint.print_info("Library name: " + LIBRARY_NAME)
 
-    setup_arduino_cli()
+    setup_arduino_cli(BUILD_DIR)
 
     # Test platforms
     platforms = []
@@ -233,9 +231,7 @@ def main():
         # Take only first two elements of fqbn, as the third one is the board name
         install_platform(":".join(fqbn.split(":", 2)[0:2]))
         print("#" * 80)
-        test_examples_in_folder(EXAMPLES_FOLDER, fqbn, LIBRARY_NAME)
-
-    exit(SUCCESS)
+        test_examples_in_folder(EXAMPLES_FOLDER, fqbn, LIBRARY_NAME, BUILD_DIR)
 
 
 if __name__ == "__main__":
