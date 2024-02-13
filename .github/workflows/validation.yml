@@ -20,11 +20,10 @@ jobs:
       - name: Run arduino-lint
         uses: arduino/arduino-lint-action@v1
         with:
-          path: "."
           library-manager: update
           project-type: library
 
-      - name: Setup Arduino-CI
+      - name: Run Arduino-CI
         if: ${{ success() }}
         uses: Arduino-CI/action@stable-1.x   # or latest, or a pinned version
         env:
