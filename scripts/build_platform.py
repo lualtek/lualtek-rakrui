@@ -200,7 +200,7 @@ def setup_arduino_cli():
 
 def main():
     LIBRARY_NAME = get_library_name()
-    ColorPrint.print_info("Library name:", LIBRARY_NAME)
+    ColorPrint.print_info("Library name: " + LIBRARY_NAME)
 
     try:
         BUILD_DIR = os.environ["GITHUB_WORKSPACE"]
@@ -208,9 +208,9 @@ def main():
         pass  # If not using GitHub Actions
 
     os.environ["PATH"] += os.pathsep + BUILD_DIR + "/bin"
-    ColorPrint.print_info("Build dir:", BUILD_DIR)
+    ColorPrint.print_info("Build dir: " + BUILD_DIR)
     EXAMPLES_FOLDER = os.path.join(BUILD_DIR, "examples")
-    ColorPrint.print_info("Examples folder:", EXAMPLES_FOLDER)
+    ColorPrint.print_info("Examples folder: " + EXAMPLES_FOLDER)
 
     setup_arduino_cli()
 
