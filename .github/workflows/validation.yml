@@ -22,8 +22,10 @@ jobs:
         with:
           library-manager: update
           project-type: library
+
   build_test:
     name: Build and Test
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v1
