@@ -11,29 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run arduino-lint
-        uses: arduino/arduino-lint-action@v1
-        with:
-          library-manager: update
-          project-type: library
-
-  build_test:
-    name: Build and Test
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.x'
-      - uses: actions/checkout@v4
-      - name: Install
-        run: bash scripts/actions_install.sh
-      - name: Build and Test
-        run: python3 scripts/build_platform.py rak_platforms_rui-test
+  lint_build_test:
+    name: Lint, Build and Test
+    uses: lualtek/workflows/.github/workflows/devices/arduino_rak_library_validation.yml@master
 
