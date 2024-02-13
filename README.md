@@ -1,6 +1,6 @@
 # LualtekRAKRUI Arduino Library
 
-The LualtekRAKRUI library is an opinionated wrapper around the RUI3 API by RAKWireless. It simplifies the usage of the RAK RUI3 LoRa module in Arduino projects, providing a convenient interface for configuring and interacting with the module.
+The LualtekRAKRUI Arduino library is an opinionated wrapper around the RUI3 API by RAKWireless. It simplifies the usage of the RAK RUI3 LoRa module in Arduino projects, providing a convenient interface for configuring and interacting with the module.
 
 For more information about the RUI3 API, refer to the [RUI3 Documentation](https://docs.rakwireless.com/RUI3/#overview).
 
