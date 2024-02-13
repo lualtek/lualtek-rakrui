@@ -147,12 +147,6 @@ def test_examples_in_folder(examples_folder, fqbn, library_name, build_dir):
         and os.path.exists(examples_folder + "/" + example + "/" + example + ".ino")
     ]
 
-    # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
-    run_or_die(
-        f"cp -a {build_dir}/src/. {examples_folder}/{library_name}",
-        "FAILED to copy library to example folder",
-    )
-
     for single_example_folder in folders_in_examples_folder:
         print("\t" + single_example_folder, end=" ")
 
@@ -207,6 +201,13 @@ def main():
 
     LIBRARY_NAME = get_library_name(BUILD_DIR)
     ColorPrint.print_info("Library name: " + LIBRARY_NAME)
+
+
+    # Make library available inside the example folder, copy src/* into the library folder of arduino
+    run_or_die(
+        f"cp -a {BUILD_DIR}/src/. {os.environ["HOME"]}/Arduino/libraries/{LIBRARY_NAME}",
+        "FAILED to copy library to Arduino library folder",
+    )
 
     setup_arduino_cli(BUILD_DIR)
 
