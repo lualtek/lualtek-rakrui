@@ -28,7 +28,7 @@ import collections
 BUILD_DIR = ""
 CROSS = "\N{cross mark}"
 CHECK = "\N{check mark}"
-OUR_NAME = ""
+OUR_NAME = None
 SUCCESS = False
 
 ALL_PLATFORMS = {
@@ -136,7 +136,7 @@ def install_libraries():
 
 
 def remove_existing_library():
-    if OUR_NAME is not "":
+    if OUR_NAME:
         run_or_die(
             'arduino-cli lib uninstall "' + OUR_NAME + '"', "Could not uninstall"
         )
