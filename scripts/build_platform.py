@@ -1,23 +1,3 @@
-"""
-This script is designed to test Arduino platform compatibility for different boards.
-
-Usage:
-    1. Ensure that the necessary environment variables are set or adjust the script as needed.
-    2. Run the script with the desired platform(s) as command-line arguments.
-       Example: python build_platform.py uno esp8266
-    3. The script will install the required Arduino boards, dependencies, and test example sketches.
-    4. Any failures during the testing process will be reported.
-
-Examples:
-    - Test specific platforms:
-        python build_platform.py uno esp8266
-    - Test a group of platforms (e.g., main_platforms, arcada_platforms):
-        python build_platform.py main_platforms arcada_platforms
-    - Test all platforms defined in the script:
-        python build_platform.py ${!rak_platforms-test}
-
-"""
-
 import sys
 import subprocess
 from pathlib import Path
@@ -68,9 +48,15 @@ class ColorPrint:
     def print_pass(message, end="\n"):
         print(f"\x1b[1;32m{message.strip()}\x1b[0m", end=end)
 
+    @staticmethod
+    def print_info(message, end="\n"):
+        print(f"\x1b[1;34m{message.strip()}\x1b[0m", end=end)
 
-def run_command(command, fail_message):
+
+def run_command(command, fail_message, show_command=False):
     """Run a shell command with subprocess.run and handle failure."""
+    if show_command:
+        ColorPrint.print_info(f"Executing: {command}")
     result = subprocess.run(
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
     )
@@ -82,10 +68,9 @@ def run_command(command, fail_message):
 
 def install_platform(fqbn):
     """Install the specified platform using arduino-cli."""
-    print(f"Installing {fqbn} ", end="")
+    ColorPrint.print_info(f"Installing {fqbn}")
     command = f"arduino-cli core install {fqbn} --additional-urls {BSP_URLS}"
     run_command(command, f"FAILED to install {fqbn}")
-    ColorPrint.print_pass(CHECK_MARK)
 
 
 def test_examples_in_folder(examples_folder, fqbn):
@@ -93,7 +78,7 @@ def test_examples_in_folder(examples_folder, fqbn):
     success = True
     for example in examples_folder.glob("*/"):
         if (example / f"{example.name}.ino").exists():
-            print(f"\tTesting {example.name} ", end="")
+            ColorPrint.print_info(f"Testing example: {example.name}")
             command = f"arduino-cli compile --fqbn {fqbn} {example}"
             result = subprocess.run(
                 command,
@@ -113,7 +98,11 @@ def test_examples_in_folder(examples_folder, fqbn):
 
 def main():
     build_dir = Path(os.getenv("GITHUB_WORKSPACE", Path.cwd()))
+    os.environ["PATH"] += os.pathsep + str(build_dir / "bin")
     examples_folder = build_dir / "examples"
+
+    ColorPrint.print_info(f"Build directory: {build_dir}")
+    ColorPrint.print_info(f"Examples folder: {examples_folder}")
 
     # Flatten the platform list in case of groups
     platforms_to_test = []
@@ -125,19 +114,19 @@ def main():
             else:
                 platforms_to_test.append(arg)
         else:
-            print(f"Unknown platform or group: {arg}")
+            ColorPrint.print_fail(f"Unknown platform or group: {arg}")
             sys.exit(-1)
 
-    setup_commands = [
+    # Updating Arduino CLI core index
+    run_command(
         f"arduino-cli core update-index --additional-urls {BSP_URLS}",
-    ]
-    for command in setup_commands:
-        run_command(command, "Setup command failed")
+        "Failed to update core index",
+        True,
+    )
 
     overall_success = True
     for platform_key in platforms_to_test:
         fqbn = ALL_PLATFORMS[platform_key]
-        print(f"Testing platform: {platform_key} with FQBN {fqbn}")
         install_platform(
             fqbn.split(":")[0:2]
         )  # Install platform without board specifics
