@@ -58,12 +58,7 @@ ALL_PLATFORMS = {
     ),
 }
 
-BSP_URLS = "https://raw.githubusercontent.com/RAKWireless/RAKwireless-Arduino-BSP-Index/main/package_rakwireless_index.json,"
-+"https://adafruit.github.io/arduino-board-index/package_adafruit_index.json,"
-+"http://arduino.esp8266.com/stable/package_esp8266com_index.json,"
-+"https://dl.espressif.com/dl/package_esp32_index.json,"
-+"https://sandeepmistry.github.io/arduino-nRF5/package_nRF5_boards_index.json,"
-+"https://raw.githubusercontent.com/RAKWireless/RAKwireless-Arduino-BSP-Index/main/package_rakwireless.com_rui_index.json"
+BSP_URLS = "https://raw.githubusercontent.com/RAKWireless/RAKwireless-Arduino-BSP-Index/main/package_rakwireless_index.json,https://adafruit.github.io/arduino-board-index/package_adafruit_index.json,http://arduino.esp8266.com/stable/package_esp8266com_index.json,https://dl.espressif.com/dl/package_esp32_index.json,https://sandeepmistry.github.io/arduino-nRF5/package_nRF5_boards_index.json,https://raw.githubusercontent.com/RAKWireless/RAKwireless-Arduino-BSP-Index/main/package_rakwireless.com_rui_index.json"
 
 
 class ColorPrint:
