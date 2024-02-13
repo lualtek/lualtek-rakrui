@@ -5,15 +5,12 @@
  * NOTE: this example uses a custom IO expander that is powered on/off by WB_IO2: https://github.com/piecol/Wisblock_IO_extention_10x23
  **/
 #include "LualtekRAKRUI.h"
-#include <Adafruit_Sensor.h>
-#include <Tiny_BME280.h> // https://github.com/jasonacox/Tiny_BME280_Library
-
-Tiny_BME280 bme;
 
 void uplinkRoutine();
 
-// De-comment this to activate custom DEVEUI (WARNING: not tested)
-uint8_t DEVEUI[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+// De-comment this to activate custom DEVEUI
+// #define CUSTOM_DEVEUI
+// uint8_t DEVEUI[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t APPEUI[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t APPKEY[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -26,12 +23,9 @@ LualtekRAKRUI lltek(APPEUI, APPKEY, MINUTES_20_COMMAND_INDEX, &debugSerial);
 #endif
 
 #define POWER_UP_SENSOR_PIN (WB_IO2)
-// BME280 tts-formatter by port
-#define F_PORT 3
+#define F_PORT 1
 
-int temperature = 0;
-int humidity = 0;
-int pressure = 0;
+int analogValue = 0;
 int voltage = 0;
 
 uint8_t dataSize = 0;
@@ -43,17 +37,6 @@ void powerSensor(int KIND)
   pinMode(POWER_UP_SENSOR_PIN, OUTPUT);
   digitalWrite(POWER_UP_SENSOR_PIN, KIND);
   delay(2000);
-}
-
-bool bmeInit()
-{
-  if (!bme.begin(BME280_ADDRESS_ALTERNATE))
-  {
-    debugSerial.println("Could not find a valid BME280 sensor, check wiring!");
-    return false;
-  }
-  delay(200);
-  return true;
 }
 
 void recvCallback(SERVICE_LORA_RECEIVE_T *data)
@@ -97,15 +80,10 @@ void setup()
 
 void readSensor()
 {
-  bmeInit();
-  temperature = bme.readTemperature();
-  humidity = bme.readHumidity();
-  pressure = bme.readPressure();
+  analogValue = analogRead(WB_A1);
 
-  debugSerial.printf("Sensor values read: \r\n");
-  debugSerial.printf("Temperature = %d *C \r\n", temperature);
-  debugSerial.printf("Humidity = %d %% \r\n", humidity);
-  debugSerial.printf("Pressure = %.2f hPa \r\n", pressure / 100.0F);
+  debugSerial.printf("Analog read: \r\n");
+  debugSerial.printf("Value = %d \r\n", value);
 }
 
 void uplinkRoutine()
@@ -114,7 +92,7 @@ void uplinkRoutine()
   readSensor();
   powerSensor(LOW);
 
-  voltage = api.system.bat.get() * 1000;
+  voltage = lltek.getBatteryVoltage();
 
   dataSize = 0;
   payloadData[dataSize++] = highByte(temperature);
