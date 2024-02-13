@@ -83,7 +83,7 @@ void readSensor()
   analogValue = analogRead(WB_A1);
 
   debugSerial.printf("Analog read: \r\n");
-  debugSerial.printf("Value = %d \r\n", value);
+  debugSerial.printf("Value = %d \r\n", analogValue);
 }
 
 void uplinkRoutine()
