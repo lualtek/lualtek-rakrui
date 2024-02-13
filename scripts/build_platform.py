@@ -28,8 +28,8 @@ import collections
 BUILD_DIR = ""
 CROSS = "\N{cross mark}"
 CHECK = "\N{check mark}"
-OUR_NAME = None
 SUCCESS = False
+LIBRARY_NAME = ""
 
 ALL_PLATFORMS = {
     # classic Arduino AVR
@@ -109,13 +109,21 @@ def run_or_die(cmd, error):
         exit(-1)
 
 
-def install_libraries():
-    OUR_NAME = None
+def get_library_name():
     try:
         libprop = open(BUILD_DIR + "/library.properties")
         for line in libprop:
             if line.startswith("name="):
-                OUR_NAME = line.replace("name=", "").strip()
+                return line.replace("name=", "").strip()
+    except OSError:
+        pass
+    return None
+
+
+def install_dependencies():
+    try:
+        libprop = open(BUILD_DIR + "/library.properties")
+        for line in libprop:
             if line.startswith("depends="):
                 deps = line.replace("depends=", "").split(",")
                 for dep in deps:
@@ -130,14 +138,7 @@ def install_libraries():
         pass
 
 
-def remove_existing_library():
-    if OUR_NAME:
-        run_or_die(
-            'arduino-cli lib uninstall "' + OUR_NAME + '"', "Could not uninstall"
-        )
-
-
-def test_examples_in_folder(folderpath, fqbn):
+def test_examples_in_folder(folderpath, fqbn, library_name):
     for example in sorted(os.listdir(folderpath)):
         examplepath = folderpath + "/" + example
         if os.path.isdir(examplepath):
@@ -147,6 +148,12 @@ def test_examples_in_folder(folderpath, fqbn):
             continue
 
         print("\t" + example, end=" ")
+
+        # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
+        run_or_die(
+            f"cp -r {BUILD_DIR}/src/* {examplepath}/{library_name}",
+            "FAILED to copy library to example folder",
+        )
 
         cmd = ["arduino-cli", "compile", "--fqbn", fqbn, examplepath]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -182,8 +189,8 @@ def main():
     )
     print()
 
-    install_libraries()
-    remove_existing_library()
+    LIBRARY_NAME = get_library_name()
+    install_dependencies()
 
     print(
         "Libraries installed: ", glob.glob(os.environ["HOME"] + "/Arduino/libraries/*")
@@ -212,7 +219,7 @@ def main():
             ":".join(fqbn.split(":", 2)[0:2])
         )  # take only first two elements
         print("#" * 80)
-        test_examples_in_folder(BUILD_DIR, fqbn)
+        test_examples_in_folder(BUILD_DIR, fqbn, LIBRARY_NAME)
 
     exit(SUCCESS)
 
