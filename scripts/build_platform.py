@@ -66,6 +66,20 @@ def run_command(command, fail_message, show_command=False):
     return result
 
 
+def get_library_name(build_dir):
+    """Extract the library name from the library.properties file."""
+    properties_file = build_dir / "library.properties"
+    try:
+        with open(properties_file, "r") as file:
+            for line in file:
+                if line.startswith("name="):
+                    return line.split("=")[1].strip()
+    except FileNotFoundError:
+        ColorPrint.print_fail(f"library.properties not found in {build_dir}")
+        sys.exit(-1)
+    return None
+
+
 def install_platform(fqbn):
     """Install the specified platform using arduino-cli."""
     # Correctly format the FQBN to include only the vendor and architecture
@@ -75,6 +89,28 @@ def install_platform(fqbn):
         f"arduino-cli core install {platform_to_install} --additional-urls {BSP_URLS}"
     )
     run_command(command, f"FAILED to install {platform_to_install}")
+
+
+def install_dependencies(build_dir):
+    """Install library dependencies listed in the library.properties file."""
+    properties_file = build_dir / "library.properties"
+    try:
+        with open(properties_file, "r") as file:
+            for line in file:
+                if line.startswith("depends="):
+                    dependencies = line.split("=")[1].strip().split(",")
+                    for dep in dependencies:
+                        ColorPrint.print_info(f"Installing dependency: {dep}")
+                        run_command(
+                            f'arduino-cli lib install "{dep}"',
+                            f"FAILED to install dependency {dep}",
+                            True,
+                        )
+    except FileNotFoundError:
+        ColorPrint.print_fail(
+            "No library.properties file found for dependency installation."
+        )
+        sys.exit(-1)
 
 
 def test_examples_in_folder(examples_folder, fqbn):
@@ -108,6 +144,19 @@ def main():
     ColorPrint.print_info(f"Build directory: {build_dir}")
     ColorPrint.print_info(f"Examples folder: {examples_folder}")
 
+    library_name = get_library_name(build_dir)
+    if library_name is None:
+        ColorPrint.print_fail("Failed to extract library name from library.properties")
+        sys.exit(-1)
+
+    ColorPrint.print_info("Library name: " + library_name)
+
+    # Make library available inside the example folder, copy src/* into the library folder of Arduino
+    copy_command = (
+        f"cp -a {build_dir}/src/. {os.environ['HOME']}/Arduino/libraries/{library_name}"
+    )
+    run_command(copy_command, "FAILED to copy library to Arduino library folder", True)
+
     # Flatten the platform list in case of groups
     platforms_to_test = []
     for arg in sys.argv[1:]:
@@ -127,6 +176,7 @@ def main():
         "Failed to update core index",
         True,
     )
+    install_dependencies(build_dir)
 
     overall_success = True
     for platform_key in platforms_to_test:
