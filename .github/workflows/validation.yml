@@ -5,8 +5,14 @@ on:
     branches: [ master ]
   pull_request:
 
+# Cancel any previous runs of this workflow
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint_test:
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,8 +20,9 @@ jobs:
       - name: Run arduino-lint
         uses: arduino/arduino-lint-action@v1
         with:
-          path: "src"
+          path: "."
           library-manager: update
+          project-type: library
 
       - name: Setup Arduino-CI
         if: ${{ success() }}
