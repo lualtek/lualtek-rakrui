@@ -193,9 +193,7 @@ def setup_arduino_cli():
     print("INSTALLING DEPENDENCIES")
     ColorPrint.print_info("#" * 40)
     install_dependencies()
-    ColorPrint.print_info(
-        "Libraries installed: " + glob.glob(os.environ["HOME"] + "/Arduino/libraries/*")
-    )
+    ColorPrint.print_info("Libraries installed")
 
 
 def main():
