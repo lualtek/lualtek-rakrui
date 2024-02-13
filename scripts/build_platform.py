@@ -68,9 +68,13 @@ def run_command(command, fail_message, show_command=False):
 
 def install_platform(fqbn):
     """Install the specified platform using arduino-cli."""
-    ColorPrint.print_info(f"Installing {fqbn}")
-    command = f"arduino-cli core install {fqbn} --additional-urls {BSP_URLS}"
-    run_command(command, f"FAILED to install {fqbn}")
+    # Correctly format the FQBN to include only the vendor and architecture
+    platform_to_install = ":".join(fqbn.split(":", 2)[0:2])
+    ColorPrint.print_info(f"Installing platform: {platform_to_install}")
+    command = (
+        f"arduino-cli core install {platform_to_install} --additional-urls {BSP_URLS}"
+    )
+    run_command(command, f"FAILED to install {platform_to_install}")
 
 
 def test_examples_in_folder(examples_folder, fqbn):
@@ -127,9 +131,7 @@ def main():
     overall_success = True
     for platform_key in platforms_to_test:
         fqbn = ALL_PLATFORMS[platform_key]
-        install_platform(
-            fqbn.split(":")[0:2]
-        )  # Install platform without board specifics
+        install_platform(fqbn)
         success = test_examples_in_folder(examples_folder, fqbn)
         overall_success &= success
 
