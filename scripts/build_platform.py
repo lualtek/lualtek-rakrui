@@ -139,18 +139,18 @@ def install_dependencies():
         pass
 
 
-def test_examples_in_folder(fqbn):
+def test_examples_in_folder(examples_folder, fqbn, library_name):
     # Get all the folders in the example folders with a .ino file
     folders_in_examples_folder = [
-        EXAMPLES_FOLDER + "/" + example
-        for example in os.listdir(EXAMPLES_FOLDER)
-        if os.path.isdir(EXAMPLES_FOLDER + "/" + example)
-        and os.path.exists(EXAMPLES_FOLDER + "/" + example + "/" + example + ".ino")
+        examples_folder + "/" + example
+        for example in os.listdir(examples_folder)
+        if os.path.isdir(examples_folder + "/" + example)
+        and os.path.exists(examples_folder + "/" + example + "/" + example + ".ino")
     ]
 
     # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
     run_or_die(
-        f"cp -r {BUILD_DIR}/src/* {EXAMPLES_FOLDER}/{LIBRARY_NAME}",
+        f"cp -r {BUILD_DIR}/src/* {examples_folder}/{library_name}",
         "FAILED to copy library to example folder",
     )
 
@@ -233,7 +233,7 @@ def main():
         # Take only first two elements of fqbn, as the third one is the board name
         install_platform(":".join(fqbn.split(":", 2)[0:2]))
         print("#" * 80)
-        test_examples_in_folder(fqbn)
+        test_examples_in_folder(EXAMPLES_FOLDER, fqbn, LIBRARY_NAME)
 
     exit(SUCCESS)
 
