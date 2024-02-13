@@ -13,5 +13,5 @@ concurrency:
 jobs:
   lint_build_test:
     name: Lint, Build and Test
-    uses: lualtek/workflows/.github/workflows/devices/arduino_rak_library_validation.yml@master
+    uses: lualtek/workflows/.github/workflows/arduino_rak_library_validation.yml@master
 
