@@ -10,7 +10,7 @@ bool isDutyCycleIndex(unsigned int commandIndex)
   return commandIndex >= 0 && commandIndex <= sizeof(dutyCycleCommandTable) - 1;
 }
 
-int convertToBatteryVoltage(int adcReading)
+float convertToBatteryVoltage(int adcReading)
 {
   for (int i = 0; i < tableSize - 1; ++i)
   {
@@ -23,7 +23,7 @@ int convertToBatteryVoltage(int adcReading)
     }
   }
   // Return the minimum battery voltage if the ADC reading is below the minimum in the table
-  return batteryValues[0] * 1000;
+  return batteryValues[0];
 }
 
 bool isKeyEmpty(const uint8_t *array, size_t size)
@@ -256,5 +256,5 @@ int LualtekRAKRUI::getBatteryVoltage()
   analogReadResolution(12);
   int adc_value = analogRead(WB_A0);
   analogReadResolution(10);
-  return convertToBatteryVoltage(adc_value);
+  return convertToBatteryVoltage(adc_value) * 1000;
 }
