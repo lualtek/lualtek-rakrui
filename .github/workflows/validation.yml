@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  lint_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,16 +14,11 @@ jobs:
       - name: Run arduino-lint
         uses: arduino/arduino-lint-action@v1
         with:
-          path: "."
-          library-manager: submit
-
-  test:
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          path: "src"
+          library-manager: update
 
       - name: Setup Arduino-CI
+        if: ${{ success() }}
         uses: Arduino-CI/action@stable-1.x   # or latest, or a pinned version
         env:
           # Not all libraries are in the root directory of a repository.
@@ -63,3 +58,4 @@ jobs:
           # to find that directory nor change to it from within the script.
           #
           # CUSTOM_INIT_SCRIPT: install_dependencies.sh
+
