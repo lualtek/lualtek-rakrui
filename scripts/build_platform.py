@@ -149,7 +149,7 @@ def test_examples_in_folder(examples_folder, fqbn, library_name, build_dir):
 
     # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
     run_or_die(
-        f"cp -r {build_dir}/src/* {examples_folder}/{library_name}",
+        f"cp -a {build_dir}/src/. {examples_folder}/{library_name}",
         "FAILED to copy library to example folder",
     )
 
