@@ -95,14 +95,8 @@ void uplinkRoutine()
   voltage = lltek.getBatteryVoltage();
 
   dataSize = 0;
-  payloadData[dataSize++] = highByte(temperature);
-  payloadData[dataSize++] = lowByte(temperature);
-  payloadData[dataSize++] = highByte(humidity);
-  payloadData[dataSize++] = lowByte(humidity);
-  payloadData[dataSize++] = (byte)((pressure & 0xFF000000) >> 24);
-  payloadData[dataSize++] = (byte)((pressure & 0x00FF0000) >> 16);
-  payloadData[dataSize++] = (byte)((pressure & 0x0000FF00) >> 8);
-  payloadData[dataSize++] = (byte)((pressure & 0X000000FF));
+  payloadData[dataSize++] = highByte(analogValue);
+  payloadData[dataSize++] = lowByte(analogValue);
   payloadData[dataSize++] = highByte(voltage);
   payloadData[dataSize++] = lowByte(voltage);
   payloadData[dataSize++] = highByte((int)(lltek.getUplinkInterval() / 1000));

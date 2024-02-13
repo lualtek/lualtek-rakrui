@@ -30,6 +30,7 @@ CROSS = "\N{cross mark}"
 CHECK = "\N{check mark}"
 LIBRARY_NAME = ""
 EXAMPLES_FOLDER = ""
+SUCCESS = False
 
 ALL_PLATFORMS = {
     # classic Arduino AVR
@@ -44,8 +45,8 @@ ALL_PLATFORMS = {
     "esp32": "esp32:esp32:featheresp32:FlashFreq=80",
     "rak4631": "rakwireless:nrf52:WisCoreRAK4631Board:softdevice=s140v6,debug=l0",
     "rak4631-rui": "rak_rui:nrf52:WisCoreRAK4631Board:softdevice=s140v6,debug=l0",
-    "rak3172-evaluation-rui": "rak_rui:stm32:WisDuoRAK3172EvaluationBoard,debug=l0",
-    "rak3172-T-rui": "rak_rui:stm32:WisDuoRAK3172TBoard,debug=l0",
+    "rak3172-evaluation-rui": "rak_rui:stm32:WisDuoRAK3172EvaluationBoard:debug=l0",
+    "rak3172-T-rui": "rak_rui:stm32:WisDuoRAK3172TBoard:debug=l0",
     "rak11200": "rakwireless:esp32:WisCore_RAK11200_Board",
     "rak11300": "rakwireless:mbed_rp2040:WisCoreRAK11300Board",
     # groupings
@@ -138,7 +139,8 @@ def install_dependencies(build_dir):
         pass
 
 
-def test_examples_in_folder(examples_folder, fqbn, library_name, build_dir):
+def test_examples_in_folder(examples_folder, fqbn):
+    global SUCCESS
     # Get all the folders in the example folders with a .ino file
     folders_in_examples_folder = [
         examples_folder + "/" + example
@@ -163,10 +165,12 @@ def test_examples_in_folder(examples_folder, fqbn, library_name, build_dir):
         err = proc.stderr.read()
         if r == 0:
             ColorPrint.print_pass(CHECK)
+            SUCCESS = True
         else:
             ColorPrint.print_fail(CROSS)
             ColorPrint.print_fail(out.decode("utf-8"))
             ColorPrint.print_fail(err.decode("utf-8"))
+            SUCCESS = False
 
 
 def setup_arduino_cli(build_dir):
@@ -232,7 +236,9 @@ def main():
         # Take only first two elements of fqbn, as the third one is the board name
         install_platform(":".join(fqbn.split(":", 2)[0:2]))
         print("#" * 80)
-        test_examples_in_folder(EXAMPLES_FOLDER, fqbn, LIBRARY_NAME, BUILD_DIR)
+        test_examples_in_folder(EXAMPLES_FOLDER, fqbn)
+
+    exit(SUCCESS)
 
 
 if __name__ == "__main__":
