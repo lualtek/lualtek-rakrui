@@ -112,7 +112,7 @@ def run_or_die(cmd, error):
 
 def get_library_name():
     try:
-        libprop = open(BUILD_DIR + "/library.properties")
+        libprop = open(os.path.join(BUILD_DIR, "library.properties"))
         for line in libprop:
             if line.startswith("name="):
                 return line.replace("name=", "").strip()
@@ -123,7 +123,7 @@ def get_library_name():
 
 def install_dependencies():
     try:
-        libprop = open(BUILD_DIR + "/library.properties")
+        libprop = open(os.path.join(BUILD_DIR, "library.properties"))
         for line in libprop:
             if line.startswith("depends="):
                 deps = line.replace("depends=", "").split(",")
@@ -199,9 +199,6 @@ def setup_arduino_cli():
 
 
 def main():
-    LIBRARY_NAME = get_library_name()
-    ColorPrint.print_info("Library name: " + LIBRARY_NAME)
-
     try:
         BUILD_DIR = os.environ["GITHUB_WORKSPACE"]
     except KeyError:
@@ -211,6 +208,9 @@ def main():
     ColorPrint.print_info("Build dir: " + BUILD_DIR)
     EXAMPLES_FOLDER = os.path.join(BUILD_DIR, "examples")
     ColorPrint.print_info("Examples folder: " + EXAMPLES_FOLDER)
+
+    LIBRARY_NAME = get_library_name()
+    ColorPrint.print_info("Library name: " + LIBRARY_NAME)
 
     setup_arduino_cli()
 
