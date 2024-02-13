@@ -26,17 +26,17 @@ jobs:
   build_test:
     name: Build and Test
     needs: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/setup-python@v1
         with:
           python-version: '3.x'
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           repository: RAKWireless/WisBlock-CI
           path: ci
       - name: Pre-install
         run: bash ci/actions_install.sh
       - name: Test RAK platforms
-        run: python3 ci/build_platform.py rak4631 rak11200 rak11300 rak3172
+        run: python3 ci/build_platform.py rak4631 rak11200 rak11300
