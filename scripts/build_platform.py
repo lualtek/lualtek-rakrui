@@ -30,6 +30,7 @@ CROSS = "\N{cross mark}"
 CHECK = "\N{check mark}"
 SUCCESS = False
 LIBRARY_NAME = ""
+EXAMPLES_FOLDER = ""
 
 ALL_PLATFORMS = {
     # classic Arduino AVR
@@ -138,23 +139,23 @@ def install_dependencies():
         pass
 
 
-def test_examples_in_folder(folderpath, fqbn, library_name):
+def test_examples_in_folder(fqbn):
     # Get all the folders in the example folders with a .ino file
     folders_in_examples_folder = [
-        folderpath + "/" + example
-        for example in os.listdir(folderpath)
-        if os.path.isdir(folderpath + "/" + example)
-        and os.path.exists(folderpath + "/" + example + "/" + example + ".ino")
+        EXAMPLES_FOLDER + "/" + example
+        for example in os.listdir(EXAMPLES_FOLDER)
+        if os.path.isdir(EXAMPLES_FOLDER + "/" + example)
+        and os.path.exists(EXAMPLES_FOLDER + "/" + example + "/" + example + ".ino")
     ]
+
+    # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
+    run_or_die(
+        f"cp -r {BUILD_DIR}/src/* {EXAMPLES_FOLDER}/{LIBRARY_NAME}",
+        "FAILED to copy library to example folder",
+    )
 
     for single_example_folder in folders_in_examples_folder:
         print("\t" + single_example_folder, end=" ")
-
-        # Make library available inside the example folder, copy src/* into example folder with the name inside library.properties
-        run_or_die(
-            f"cp -r {folderpath}/src/* {single_example_folder}/{library_name}",
-            "FAILED to copy library to example folder",
-        )
 
         examplepath = (
             single_example_folder
@@ -176,15 +177,7 @@ def test_examples_in_folder(folderpath, fqbn, library_name):
             SUCCESS = True
 
 
-def main():
-    try:
-        BUILD_DIR = os.environ["GITHUB_WORKSPACE"]
-    except KeyError:
-        pass  # If not using GitHub Actions
-
-    os.environ["PATH"] += os.pathsep + BUILD_DIR + "/bin"
-    print("build dir:", BUILD_DIR)
-
+def setup_arduino_cli():
     print()
     ColorPrint.print_info("#" * 40)
     print("INSTALLING ARDUINO BOARDS")
@@ -194,18 +187,35 @@ def main():
         "arduino-cli core update-index --additional-urls " + BSP_URLS + " > /dev/null",
         "FAILED to update core indices",
     )
+
     print()
-
-    LIBRARY_NAME = get_library_name()
+    ColorPrint.print_info("#" * 40)
+    print("INSTALLING DEPENDENCIES")
+    ColorPrint.print_info("#" * 40)
     install_dependencies()
-
-    print(
+    ColorPrint.print_info(
         "Libraries installed: ", glob.glob(os.environ["HOME"] + "/Arduino/libraries/*")
     )
 
+
+def main():
+    LIBRARY_NAME = get_library_name()
+    ColorPrint.print_info("Library name:", LIBRARY_NAME)
+
+    try:
+        BUILD_DIR = os.environ["GITHUB_WORKSPACE"]
+    except KeyError:
+        pass  # If not using GitHub Actions
+
+    os.environ["PATH"] += os.pathsep + BUILD_DIR + "/bin"
+    ColorPrint.print_info("Build dir:", BUILD_DIR)
+    EXAMPLES_FOLDER = os.path.join(BUILD_DIR, "examples")
+    ColorPrint.print_info("Examples folder:", EXAMPLES_FOLDER)
+
+    setup_arduino_cli()
+
     # Test platforms
     platforms = []
-    SUCCESS = False
 
     for arg in sys.argv[1:]:
         platform = ALL_PLATFORMS.get(arg, None)
@@ -222,11 +232,10 @@ def main():
         fqbn = ALL_PLATFORMS[platform]
         print("#" * 80)
         ColorPrint.print_info("SWITCHING TO " + fqbn)
-        install_platform(
-            ":".join(fqbn.split(":", 2)[0:2])
-        )  # take only first two elements
+        # Take only first two elements of fqbn, as the third one is the board name
+        install_platform(":".join(fqbn.split(":", 2)[0:2]))
         print("#" * 80)
-        test_examples_in_folder(BUILD_DIR, fqbn, LIBRARY_NAME)
+        test_examples_in_folder(fqbn)
 
     exit(SUCCESS)
 
