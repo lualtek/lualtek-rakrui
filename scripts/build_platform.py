@@ -142,7 +142,7 @@ def test_examples_in_folder(folderpath, fqbn, library_name):
     for example in sorted(os.listdir(folderpath)):
         examplepath = folderpath + "/" + example
         if os.path.isdir(examplepath):
-            test_examples_in_folder(examplepath, fqbn)
+            test_examples_in_folder(examplepath, fqbn, library_name)
             continue
         if not examplepath.endswith(".ino"):
             continue
