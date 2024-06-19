@@ -111,7 +111,7 @@ bool LualtekRAKRUI::setup()
   }
 
   // https://docs.rakwireless.com/RUI3/LoRaWAN/#nwm
-  if (!api.lorawan.nwm.set(1))
+  if (!api.lorawan.nwm.set())
   {
     debugStream->println(F("LoRaWan Settings - set network working mode is incorrect!"));
     return false;
