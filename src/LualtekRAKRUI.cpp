@@ -310,5 +310,5 @@ int LualtekRAKRUI::getBatteryVoltage_10x()
   }
   analogReadResolution(10);
   adc_value = sum / 10;
-  return adc_value;
+  return convertToBatteryVoltage_RAK19007(adc_value) * 1000;
 }
