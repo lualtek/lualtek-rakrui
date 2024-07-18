@@ -105,6 +105,12 @@ public:
    */
   int getBatteryVoltage();
 
+  /*
+   * To use with RAK19007 LUT
+   * returns smoothed battery values, otherwise underestimated if one-shot sampled
+   */
+  int getBatteryVoltage_10x();
+
 private:
   uint8_t devEui[8];
   uint8_t appEui[8];

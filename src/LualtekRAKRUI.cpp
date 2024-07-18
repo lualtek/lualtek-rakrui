@@ -1,14 +1,23 @@
 #include "LualtekRAKRUI.h"
 
 // LUT1_EV_Full Li-ION/LiPo scale up to 4.3v, 10 loops of sampling
-//const int adcValues[] = {1583, 1626, 1668, 1709, 1750, 1791, 1832, 1872, 1911, 1950, 1989, 2027, 2065, 2103, 2140, 2177, 2214, 2252, 2285}; // ADC readings
-//const float batteryValues[] = {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3}; // Corresponding battery values in volts
+// const int adcValues[] = {1583, 1626, 1668, 1709, 1750, 1791, 1832, 1872, 1911, 1950, 1989, 2027, 2065, 2103, 2140, 2177, 2214, 2252, 2285}; // ADC readings
+// const float batteryValues[] = {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3}; // Corresponding battery values in volts
 
 // LUT2_EV_Full Li-ION/LiPo scale up to 4.3v, single shot sampling
-const int adcValues[] =       { 1549,1592,1635,1675,1715,1754,1792,1829,1866,1901,1936,1969,2004,2038,2071,2105,2139,2173,2205 }; // ADC readings
-const float batteryValues[] = {  2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3 }; // Corresponding battery values in volts
+const int adcValues[] = {1549, 1592, 1635, 1675, 1715, 1754, 1792, 1829, 1866, 1901, 1936, 1969, 2004, 2038, 2071, 2105, 2139, 2173, 2205}; // ADC readings
+const float batteryValues[] = {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3};              // Corresponding battery values in volts
+
+/*
+  * New LUT sampled on the combo RAK3172 + RAK19007
+
+*/
+// LUT_RAK19007_Full Li-ION/LiPo scale up to 4.3v, 10X sampling
+const int adcValues_RAK19007[] = {1904, 1947, 1990, 2030, 2070, 2109, 2147, 2184, 2221, 2256, 2292, 2324, 2359, 2393, 2427, 2471, 2494, 2527, 2570}; // ADC readings
+const float batteryValues_RAK19007[] = {2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3};              // Corresponding battery values in volts
 
 const int tableSize = sizeof(adcValues) / sizeof(adcValues[0]);
+const int tableSize_RAK19007 = sizeof(adcValues_RAK19007) / sizeof(adcValues_RAK19007[0]);
 
 bool isDutyCycleIndex(unsigned int commandIndex)
 {
@@ -29,6 +38,26 @@ float convertToBatteryVoltage(int adcReading)
   }
   // Return the minimum battery voltage if the ADC reading is below the minimum in the table
   return batteryValues[0];
+}
+
+/*
+ * To be used with getBatteryVoltage_10x()
+ */
+
+float convertToBatteryVoltage_RAK19007(int adcReading)
+{
+  for (int i = 0; i < tableSize - 1; ++i)
+  {
+    if (adcReading >= adcValues_RAK19007[i] && adcReading <= adcValues_RAK19007[i + 1])
+    {
+      // Linear interpolation to get the battery voltage
+      float slope = (batteryValues_RAK19007[i + 1] - batteryValues_RAK19007[i]) / (adcValues_RAK19007[i + 1] - adcValues_RAK19007[i]);
+      float batteryVoltage = batteryValues_RAK19007[i] + slope * (adcReading - adcValues_RAK19007[i]);
+      return batteryVoltage;
+    }
+  }
+  // Return the minimum battery voltage if the ADC reading is below the minimum in the table
+  return batteryValues_RAK19007[0];
 }
 
 bool isKeyEmpty(const uint8_t *array, size_t size)
@@ -262,4 +291,24 @@ int LualtekRAKRUI::getBatteryVoltage()
   int adc_value = analogRead(WB_A0);
   analogReadResolution(10);
   return convertToBatteryVoltage(adc_value) * 1000;
+}
+
+/*
+ * New function that reads the ADC multiple times to avoid underestimation of voltage
+ */
+int LualtekRAKRUI::getBatteryVoltage_10x()
+{ // USE with LUT_RAK19007
+
+  uint16_t adc_value = 0;
+
+  uint16_t sum = 0;
+  analogReadResolution(12);
+  for (int i = 0; i < 10; i++)
+  {
+    sum += analogRead(WB_A0);
+    delay(5);
+  }
+  analogReadResolution(10);
+  adc_value = sum / 10;
+  return convertToBatteryVoltage_RAK19007(adc_value) * 1000;
 }
