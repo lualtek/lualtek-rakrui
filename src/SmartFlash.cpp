@@ -13,23 +13,28 @@ uint8_t SmartFlash::getUplinkIntervalIndex()
   return readFromFlash(UPLINK_INTERVAL_OFFSET, &_intervalIndex, sizeof(_intervalIndex));
 }
 
-bool SmartFlash::saveCO2MeasurementDelay(uint8_t data)
+bool SmartFlash::saveCO2MeasurementDelayIndex(uint8_t data)
 {
-  _co2MeasurementDelay = data;
-  _co2MeasurementDelayOffset = UPLINK_INTERVAL_OFFSET + sizeof(_intervalIndex);
-  return writeToFlash(_co2MeasurementDelayOffset, &data, sizeof(_co2MeasurementDelay));
+  _co2MeasurementDelayIndex = data;
+  _co2MeasurementDelayIndexOffset = UPLINK_INTERVAL_OFFSET + sizeof(_intervalIndex);
+  return writeToFlash(_co2MeasurementDelayIndexOffset, &data, sizeof(_co2MeasurementDelayIndex));
 }
 
-uint8_t SmartFlash::getCO2MeasurementDelay()
+uint8_t SmartFlash::getCO2MeasurementDelayIndex()
 {
-  return readFromFlash(_co2MeasurementDelayOffset, &_co2MeasurementDelay, sizeof(_co2MeasurementDelay));
+  return readFromFlash(_co2MeasurementDelayIndexOffset, &_co2MeasurementDelayIndex, sizeof(_co2MeasurementDelayIndex));
 }
 
-bool SmartFlash::saveCO2Altitude(uint8_t data)
+bool SmartFlash::saveCO2AltitudeIndex(uint8_t data)
 {
-  _co2Altitude = data;
-  _co2AltitudeOffset = _co2MeasurementDelayOffset + sizeof(_co2MeasurementDelay);
-  return writeToFlash(_co2AltitudeOffset, &data, sizeof(_co2Altitude));
+  _co2AltitudeIndex = data;
+  _co2AltitudeIndexOffset = _co2MeasurementDelayIndexOffset + sizeof(_co2MeasurementDelayIndex);
+  return writeToFlash(_co2AltitudeIndexOffset, &data, sizeof(_co2AltitudeIndex));
+}
+
+uint8_t SmartFlash::getCO2AltitudeIndex()
+{
+  return readFromFlash(_co2AltitudeIndexOffset, &_co2AltitudeIndex, sizeof(_co2AltitudeIndex));
 }
 
 bool SmartFlash::writeToFlash(uint32_t offset, uint8_t *data, size_t length)
