@@ -1,4 +1,7 @@
 #include "DutyCycleHandler.h"
+#include "SmartFlash.h"
+
+SmartFlash smartflash;
 
 DutyCycleHandler::DutyCycleHandler(lualtek_dowlink_command_dutycycle_index_t defaultDutyCycleIndex)
     : defaultDutyCycleIndex(defaultDutyCycleIndex),
@@ -6,9 +9,8 @@ DutyCycleHandler::DutyCycleHandler(lualtek_dowlink_command_dutycycle_index_t def
       previousMillis(0)
 {
   // Setup duty cycle from flash memory if available or use default
-  uint8_t uplinkIntervalFlash[1];
-  api.system.flash.get(0, uplinkIntervalFlash, 1);
-  changeDutyCycle(isDutyCycleIndex(uplinkIntervalFlash[0]) ? dutyCycleCommandTable[uplinkIntervalFlash[0]] : MINUTES_20_IN_MILLISECONDS);
+  uint8_t uplinkIntervalFlashIndex = smartflash.getUplinkIntervalIndex();
+  changeDutyCycle(isDutyCycleIndex(uplinkIntervalFlashIndex) ? dutyCycleCommandTable[uplinkIntervalFlashIndex] : MINUTES_20_IN_MILLISECONDS);
 }
 
 bool DutyCycleHandler::isDutyCycleIndex(unsigned int commandIndex)
@@ -25,5 +27,5 @@ void DutyCycleHandler::changeDutyCycle(int commandIndex)
 
   uplinkInterval = dutyCycleCommandTable[commandIndex];
   uint8_t commandIndexBuffer[1] = {commandIndex};
-  api.system.flash.set(0, commandIndexBuffer, 1);
+  smartflash.saveUplinkIntervalIndex(commandIndex);
 }

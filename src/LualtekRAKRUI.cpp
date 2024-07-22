@@ -43,7 +43,6 @@ float convertToBatteryVoltage(int adcReading)
 /*
  * To be used with getBatteryVoltage_10x()
  */
-
 float convertToBatteryVoltage_RAK19007(int adcReading)
 {
   for (int i = 0; i < tableSize - 1; ++i)

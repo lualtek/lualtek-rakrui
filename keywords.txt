@@ -1,5 +1,6 @@
 LualtekRAKRUI	KEYWORD1
 getBatteryVoltage	KEYWORD2
+getBatteryVoltage_10x	KEYWORD2
 getUplinkInterval	KEYWORD2
 handleChangeDutyCycle	KEYWORD2
 join	KEYWORD2
@@ -8,5 +9,12 @@ send	KEYWORD2
 setClass	KEYWORD2
 setup	KEYWORD2
 setupTimers	KEYWORD2
+SmartFlash	KEYWORD1
+getCO2Altitude	KEYWORD2
+getCO2MeasurementDelay	KEYWORD2
+getUplinkIntervalIndex	KEYWORD2
+saveCO2Altitude	KEYWORD2
+saveCO2MeasurementDelay	KEYWORD2
+saveUplinkIntervalIndex	KEYWORD2
 DutyCycleHandler	KEYWORD1
 changeDutyCycle	KEYWORD2
