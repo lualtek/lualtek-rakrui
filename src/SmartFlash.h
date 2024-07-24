@@ -4,6 +4,8 @@
 #include <Arduino.h>
 
 #define UPLINK_INTERVAL_OFFSET 0
+#define CO2_MEASUREMENT_DELAY_OFFSET 1
+#define CO2_ALTITUDE_OFFSET 2
 
 class SmartFlash
 {
@@ -28,6 +30,7 @@ private:
   uint8_t _co2MeasurementDelayIndexOffset = 0;
   uint8_t _co2AltitudeIndex = 0;
   uint8_t _co2AltitudeIndexOffset = 0;
+  uint8_t flashData[16] = {0};
   bool writeToFlash(uint32_t offset, uint8_t *data, size_t length);
   bool readFromFlash(uint32_t offset, uint8_t *data, size_t length);
 };
