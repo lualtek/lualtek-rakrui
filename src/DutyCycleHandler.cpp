@@ -1,4 +1,7 @@
 #include "DutyCycleHandler.h"
+#include "SmartFlash.h"
+
+extern SmartFlash smartflash;
 
 DutyCycleHandler::DutyCycleHandler(lualtek_dowlink_command_dutycycle_index_t defaultDutyCycleIndex)
     : defaultDutyCycleIndex(defaultDutyCycleIndex),

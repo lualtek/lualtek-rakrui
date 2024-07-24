@@ -2,9 +2,6 @@
 #define _DUTYCYCLEHANDLER_H_
 
 #include <Arduino.h>
-#include "SmartFlash.h"
-
-extern SmartFlash smartflash;
 
 enum lualtek_dowlink_command_dutycycle_index_t
 {
