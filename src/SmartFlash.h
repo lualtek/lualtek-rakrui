@@ -12,6 +12,8 @@ class SmartFlash
 public:
   SmartFlash();
 
+  bool begin();
+
   // Save and retrieve uplink interval
   bool saveUplinkIntervalIndex(uint8_t interval);
   uint8_t getUplinkIntervalIndex();
@@ -30,7 +32,6 @@ private:
   uint8_t _co2MeasurementDelayIndexOffset = 0;
   uint8_t _co2AltitudeIndex = 0;
   uint8_t _co2AltitudeIndexOffset = 0;
-  uint8_t flashData[16] = {0};
   bool writeToFlash(uint32_t offset, uint8_t *data, size_t length);
   bool readFromFlash(uint32_t offset, uint8_t *data, size_t length);
 };

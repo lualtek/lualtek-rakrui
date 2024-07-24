@@ -10,11 +10,12 @@ setClass	KEYWORD2
 setup	KEYWORD2
 setupTimers	KEYWORD2
 SmartFlash	KEYWORD1
-getCO2Altitude	KEYWORD2
-getCO2MeasurementDelay	KEYWORD2
+begin	KEYWORD2
+getCO2AltitudeIndex	KEYWORD2
+getCO2MeasurementDelayIndex	KEYWORD2
 getUplinkIntervalIndex	KEYWORD2
-saveCO2Altitude	KEYWORD2
-saveCO2MeasurementDelay	KEYWORD2
+saveCO2AltitudeIndex	KEYWORD2
+saveCO2MeasurementDelayIndex	KEYWORD2
 saveUplinkIntervalIndex	KEYWORD2
 DutyCycleHandler	KEYWORD1
 changeDutyCycle	KEYWORD2
