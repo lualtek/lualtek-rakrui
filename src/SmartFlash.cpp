@@ -7,6 +7,7 @@ bool SmartFlash::begin()
   getUplinkIntervalIndex();
   getCO2MeasurementDelayIndex();
   getCO2AltitudeIndex();
+  delay(500);
 }
 
 bool SmartFlash::saveUplinkIntervalIndex(uint8_t interval)
