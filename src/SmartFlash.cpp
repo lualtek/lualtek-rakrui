@@ -1,13 +1,14 @@
 #include "SmartFlash.h"
 
-SmartFlash::SmartFlash() {}
-
-bool SmartFlash::begin()
+SmartFlash::SmartFlash()
 {
+  _co2MeasurementDelayIndexOffset = UPLINK_INTERVAL_OFFSET + sizeof(_intervalIndex);
+  _co2AltitudeIndexOffset = _co2MeasurementDelayIndexOffset + sizeof(_co2MeasurementDelayIndex);
+
+  // Initialize values by reading from flash memory
   getUplinkIntervalIndex();
   getCO2MeasurementDelayIndex();
   getCO2AltitudeIndex();
-  delay(500);
 }
 
 bool SmartFlash::saveUplinkIntervalIndex(uint8_t interval)
