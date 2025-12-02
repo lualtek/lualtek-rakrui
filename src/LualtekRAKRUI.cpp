@@ -4,12 +4,15 @@ LualtekRAKRUI::LualtekRAKRUI(
     const uint8_t appEui[8],
     const uint8_t appKey[16],
     uint8_t defaultDutyCycleIndex,
+    PowerModeKind powerMode,
     Stream *debugStream)
     : _debugStream(debugStream),
-      _dutyHandler(defaultDutyCycleIndex)
+      _dutyHandler(defaultDutyCycleIndex),
+      _magnetHandler()
 {
   memcpy(_appEui, appEui, 8);
   memcpy(_appKey, appKey, 16);
+  _powerMode = powerMode;
 }
 
 // Private helper to handle logic, flash, and timers
@@ -54,11 +57,23 @@ void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
     delay(100);
     api.system.reboot();
   }
+  else if (payload->Port == PORT_TURN_OFF_MAGNET && _powerMode == POWER_MODE_MAGNET)
+  {
+    _debugStream->println(F("DL: Turn Off Magnet Request. Rebooting..."));
+    _magnetHandler.turnOff();
+  }
 }
 
 bool LualtekRAKRUI::setup()
 {
-  delay(1000); // Small stability delay
+  delay(1000);
+
+  if (_powerMode == POWER_MODE_MAGNET)
+  {
+    _debugStream->println(F("Power Mode: Magnet"));
+    _magnetHandler.begin();
+  }
+
   _debugStream->println(F("--- Lualtek RAKRUI Init ---"));
 
   // 1. Restore Duty Cycle from Flash
@@ -72,36 +87,43 @@ bool LualtekRAKRUI::setup()
   // 2. Hardware Setup
   if (!api.system.lpm.set(1))
   {
+    _debugStream->println(F("Err: Low Power Mode set failed"));
     return false;
   }
 
   if (!api.lorawan.nwm.set())
   {
+    _debugStream->println(F("Err: Network mode set failed"));
     return false;
   }
 
   if (!api.lorawan.appeui.set(_appEui, 8))
   {
+    _debugStream->println(F("Err: AppEUI set failed"));
     return false;
   }
 
   if (!api.lorawan.appkey.set(_appKey, 16))
   {
+    _debugStream->println(F("Err: AppKey set failed"));
     return false;
   }
 
   if (!api.lorawan.band.set(RAK_REGION_EU868))
   {
+    _debugStream->println(F("Err: Band set failed"));
     return false;
   }
 
   if (!setClass(RAK_LORA_CLASS_A))
   {
+    _debugStream->println(F("Err: Set Class failed"));
     return false;
   }
 
   if (!api.lorawan.njm.set(RAK_LORA_OTAA))
   {
+    _debugStream->println(F("Err: Join Mode set failed"));
     return false;
   }
 
@@ -137,6 +159,7 @@ bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs, JoinBehavior behavior)
 
       _debugStream->println(F("Err: Join Timeout. Going to sleep for 2 minutes then try again."));
       api.system.sleep.all(120000); // Sleep for 2 minutes
+      startAttempt = millis();
     }
 
     api.lorawan.join();
@@ -145,9 +168,20 @@ bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs, JoinBehavior behavior)
   }
 
   // Post-Join Configuration
-  api.lorawan.adr.set(true);
-  api.lorawan.rety.set(1);
-  api.lorawan.cfm.set(false);
+  if (!api.lorawan.adr.set(true))
+  {
+    _debugStream->println(F("Warning: ADR enable failed"));
+  }
+
+  if (!api.lorawan.rety.set(1))
+  {
+    _debugStream->println(F("Warning: Set retry failed"));
+  }
+
+  if (!api.lorawan.cfm.set(false))
+  {
+    _debugStream->println(F("Warning: Set confirm failed"));
+  }
 
   // Debug Info
   uint8_t assigned_addr[4];

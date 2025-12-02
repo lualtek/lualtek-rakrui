@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "DutyCycleHandler.h"
 #include "SmartFlash.h"
+#include "MagnetHandler.h"
 
 enum DownlinkPort : uint8_t
 {
@@ -19,6 +20,12 @@ enum JoinBehavior : uint8_t
   JOIN_ONCE = 1
 };
 
+enum PowerModeKind : uint8_t
+{
+  POWER_MODE_MAGNET = 0,
+  POWER_MODE_CONNECTOR = 1
+};
+
 class LualtekRAKRUI
 {
 public:
@@ -27,9 +34,12 @@ public:
       const uint8_t appEui[8],
       const uint8_t appKey[16],
       uint8_t defaultDutyCycleIndex,
+      PowerModeKind powerMode,
       Stream *debugStream);
 
-  // Initialize peripherals, flash and duty-cycle state
+  /** Initialize peripherals, flash and duty-cycle state
+   * NOTE: This should be called after debugSerial.begin() and a delay to allow the serial port to stabilize
+   */
   bool setup();
 
   // attemptTimeoutMs: How long to try joining before giving up (prevent blocking forever)
@@ -54,12 +64,14 @@ private:
 
   uint8_t _appEui[8];
   uint8_t _appKey[16];
+  PowerModeKind _powerMode;
 
   Stream *_debugStream;
 
   // Composition: These are members of the main class
   DutyCycleHandler _dutyHandler;
   SmartFlash _flash;
+  MagnetHandler _magnetHandler;
 };
 
 #endif
