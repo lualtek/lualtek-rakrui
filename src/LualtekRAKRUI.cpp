@@ -64,30 +64,51 @@ bool LualtekRAKRUI::setup()
   // 1. Restore Duty Cycle from Flash
   uint8_t savedIndex = _flash.readUplinkIndex(_dutyHandler.getCurrentIndex());
   // We update logic but don't save to flash (redundant) or start timers yet
-  _dutyHandler.setCycle(savedIndex);
+  if (!_dutyHandler.setCycle(savedIndex))
+  {
+    _debugStream->println(F("Warning: Invalid saved index, using default"));
+  }
 
   // 2. Hardware Setup
   if (!api.system.lpm.set(1))
+  {
     return false;
+  }
+
   if (!api.lorawan.nwm.set())
+  {
     return false;
+  }
 
   if (!api.lorawan.appeui.set(_appEui, 8))
+  {
     return false;
+  }
+
   if (!api.lorawan.appkey.set(_appKey, 16))
+  {
     return false;
+  }
 
   if (!api.lorawan.band.set(RAK_REGION_EU868))
+  {
     return false;
+  }
+
   if (!setClass(RAK_LORA_CLASS_A))
+  {
     return false;
+  }
+
   if (!api.lorawan.njm.set(RAK_LORA_OTAA))
+  {
     return false;
+  }
 
   return true;
 }
 
-bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs)
+bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs, JoinBehavior behavior)
 {
   // SF12 (DR 0) is very slow and consumes high airtime.
   // Consider allowing ADR to handle this, or start at DR_0 and move up.
@@ -108,7 +129,13 @@ bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs)
   {
     if (millis() - startAttempt > attemptTimeoutMs)
     {
-      _debugStream->println(F("Err: Join Timeout. Giving up, going to sleep for 2 minutes then try again."));
+      if (behavior == JOIN_ONCE)
+      {
+        _debugStream->println(F("Err: Join Timeout. Giving up."));
+        return false;
+      }
+
+      _debugStream->println(F("Err: Join Timeout. Going to sleep for 2 minutes then try again."));
       api.system.sleep.all(120000); // Sleep for 2 minutes
     }
 

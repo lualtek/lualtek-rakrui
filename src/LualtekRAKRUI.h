@@ -13,6 +13,12 @@ enum DownlinkPort : uint8_t
   PORT_TURN_OFF_MAGNET = 20
 };
 
+enum JoinBehavior : uint8_t
+{
+  JOIN_FOREVER = 0,
+  JOIN_ONCE = 1
+};
+
 class LualtekRAKRUI
 {
 public:
@@ -27,7 +33,7 @@ public:
   bool setup();
 
   // attemptTimeoutMs: How long to try joining before giving up (prevent blocking forever)
-  bool join(uint32_t attemptTimeoutMs = 60000);
+  bool join(uint32_t attemptTimeoutMs = 60000, JoinBehavior behavior = JOIN_FOREVER);
 
   // Switch between LoRaWAN device classes
   bool setClass(RAK_LORA_CLASS classType);

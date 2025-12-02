@@ -18,9 +18,14 @@ DutyCycleHandler::DutyCycleHandler(uint8_t defaultIndex)
     : _currentIndex(defaultIndex), _defaultIndex(defaultIndex)
 {
   // Sanity check default
+  if (!isValidIndex(_defaultIndex))
+  {
+    _defaultIndex = MINUTES_20; // Safe fallback
+  }
+
   if (!isValidIndex(_currentIndex))
   {
-    _currentIndex = MINUTES_20; // Safe fallback
+    _currentIndex = _defaultIndex;
   }
 }
 
