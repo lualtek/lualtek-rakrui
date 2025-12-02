@@ -1,9 +1,9 @@
 name: Arduino Library Validation
 
 on:
-  push:
-    branches: [master]
-  pull_request:
+  # push:
+  #   branches: [master]
+  # pull_request:
 
 # Cancel any previous runs of this workflow
 concurrency:
