@@ -4,12 +4,13 @@ The LualtekRAKRUI Arduino library is an opinionated wrapper around the RUI3 API 
 
 For more information about the RUI3 API, refer to the [RUI3 Documentation](https://docs.rakwireless.com/RUI3/#overview).
 
-
 ## Features
 
 - Simplified setup and configuration of the RAK RUI3 LoRa module.
 - Handling of downlink messages for changing duty cycle.
+- **Non-blocking** join attempts with timeouts.
 - Timer-based scheduling for uplink transmissions.
+- Integrated Flash memory management for setting persistence.
 - Support for sending data packages to the LoRaWAN network.
 
 ## Installation
@@ -44,42 +45,46 @@ To begin using the LualtekRAKRUI library, include the library header at the begi
 #include <LualtekRAKRUI.h>
 ```
 
-Next, create an instance of the `LualtekRAKRUI` class:
+Next, create an instance of the `LualtekRAKRUI` class. You must pass the Serial interface for debug output:
 
 ```cpp
 const uint8_t appEui[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const uint8_t appKey[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-// With 20 minutes duty cycle
-LualtekRAKRUI lualtek(appEui, appKey, MINUTES_20_COMMAND_INDEX);
-```
 
-Replace `appEui` and `appKey` with your LoRaWAN application EUI and application key respectively.
+// Initialize with AppEUI, AppKey, Default Duty Cycle, and Debug Stream
+// Example: Default 20 minutes duty cycle
+LualtekRAKRUI lualtek(appEui, appKey, MINUTES_20, &Serial);
+```
 
 ### Configuration and Setup
 
-To configure and set up the RAK with RUI3 LoRa module, call the `setup()` method:
+To configure and set up the RAK with RUI3 LoRa module, call the `setup()` method inside your Arduino `setup()`:
 
 ```cpp
-bool success = lualtek.setup();
-if (success) {
-  // Setup successful, proceed with further configuration or operations
-} else {
-  // Setup failed, handle the error
+void setup() {
+  Serial.begin(115200);
+
+  bool success = lualtek.setup();
+  if (success) {
+    // Setup successful
+  } else {
+    // Setup failed, handle the error
+  }
 }
 ```
 
-### Joining the LoRaWAN
+### Joining the LoRaWAN Network
 
- Network
-
-To join the LoRaWAN network using OTAA, call the `join()` method:
+To join the LoRaWAN network using OTAA, call the `join()` method. You can optionally pass a timeout in milliseconds (default is 60000ms).
 
 ```cpp
-bool success = lualtek.join();
+// Try to join with a 60 second timeout
+bool success = lualtek.join(60000);
+
 if (success) {
   // Join successful, proceed with data transmissions
 } else {
-  // Join failed, handle the error
+  // Join failed (or timed out), handle the error or sleep
 }
 ```
 
@@ -96,62 +101,59 @@ bool success = lualtek.send(size, data, fPort);
 if (success) {
   // Data send request successful
 } else {
-  // Data send request failed, handle the error
+  // Data send request failed
 }
 ```
-
-Replace `data` with your payload data, `size` with the size of the payload, and `fPort` with the LoRaWAN port number.
 
 ### Handling Downlink Messages
 
-To handle downlink messages, register the `onDownlinkReceived()` callback with the RUI3 API using `api.lorawan.registerRecvCallback()`:
+To handle downlink messages, you must create a callback function matching the RUI3 signature and register it. Pass the payload to the library instance to handle internal logic (like Duty Cycle updates).
 
 ```cpp
 void onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload) {
-  // This will handle the downlink message for changing duty cycle or rebooting
-  lltek.onDownlinkReceived(data);
+  // Pass the payload to the library to handle internal commands
+  lualtek.onDownlinkReceived(payload);
 
-  // Handle the downlink message based on payload properties
+  // Add your custom downlink logic here
+  Serial.printf("Received data on port %d\r\n", payload->Port);
 }
 
-// Register the callback
+// In your setup():
 api.lorawan.registerRecvCallback(onDownlinkReceived);
 ```
-
 
 #### Supported Downlink Commands
 
 The LualtekRAKRUI library supports the following downlink commands:
 
-- **Change Duty Cycle**: To change the duty cycle, send a downlink message with `fPort` set to `DOWNLINK_ACTION_CHANGE_INTERVAL_PORT` (3) and the payload as follows:
+- **Change Duty Cycle**: Send a downlink message with `fPort` set to `DOWNLINK_ACTION_CHANGE_INTERVAL_PORT` (3). The payload (first byte) determines the new interval:
 
-  - `0`: Set duty cycle to 60 minutes.
-  - `1`: Set duty cycle to 40 minutes.
-  - `2`: Set duty cycle to 30 minutes.
-  - `3`: Set duty cycle to 20 minutes.
-  - `4`: Set duty cycle to 15 minutes.
-  - `5`: Set duty cycle to 10 minutes.
-  - `6`: Set duty cycle to 5 minutes.
-  - `7`: Set duty cycle to 1 minute.
+  - `0`: 60 minutes
+  - `1`: 40 minutes
+  - `2`: 30 minutes
+  - `3`: 20 minutes
+  - `4`: 15 minutes
+  - `5`: 10 minutes
+  - `6`: 5 minutes
+  - `7`: 1 minute
+  - `8`: 12 hours
+  - `9`: 24 hours
 
-- **Reboot**: To reboot the module, send a downlink message with `fPort` set to `DOWNLINK_ACTION_REJOIN_PORT` (10) and an empty payload (0 bytes).
-
-For more information about registering the callback, refer to the [RUI3 Documentation](https://docs.rakwireless.com/RUI3/LoRaWAN/#registerrecvcallback).
+- **Reboot**: Send a downlink message with `fPort` set to `DOWNLINK_ACTION_REJOIN_PORT` (10). No payload is required.
 
 ### Scheduling Uplink Transmissions
 
-To schedule uplink transmissions at regular intervals, use the `setupTimers()` method:
+To schedule uplink transmissions at regular intervals, use the `setupTimers()` method. The library will automatically manage the interval based on the current Duty Cycle configuration.
 
 ```cpp
-bool success = lualtek.setupTimers(callbackFunction);
-if (success) {
-  // Timer setup successful, callbackFunction will be invoked at specified intervals
-} else {
-  // Timer setup failed, handle the error
+void uplinkRoutine() {
+  // Your code to gather sensor data and send it
+  lualtek.send(size, data, port);
 }
-```
 
-Replace `callbackFunction` with the function that should be called at the specified intervals.
+// In setup():
+bool success = lualtek.setupTimers(uplinkRoutine);
+```
 
 ## License
 
