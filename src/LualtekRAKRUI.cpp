@@ -125,8 +125,8 @@ bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs)
   {
     if (millis() - startAttempt > attemptTimeoutMs)
     {
-      _debugStream->println(F("Err: Join Timeout"));
-      return false;
+      _debugStream->println(F("Err: Join Timeout. Giving up, going to sleep for 2 minutes then try again."));
+      api.system.sleep.all(120000); // Sleep for 2 minutes
     }
 
     api.lorawan.join();

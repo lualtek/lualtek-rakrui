@@ -16,12 +16,14 @@ enum DownlinkPort : uint8_t
 class LualtekRAKRUI
 {
 public:
+    // Construct using the module DevEUI stored in flash
   LualtekRAKRUI(
       const uint8_t appEui[8],
       const uint8_t appKey[16],
       uint8_t defaultDutyCycleIndex,
       Stream *debugStream);
 
+    // Construct with an explicit DevEUI for OTAA joins
   LualtekRAKRUI(
       const uint8_t devEui[8],
       const uint8_t appEui[8],
@@ -29,22 +31,27 @@ public:
       uint8_t defaultDutyCycleIndex,
       Stream *debugStream);
 
+  // Initialize peripherals, flash and duty-cycle state
   bool setup();
 
   // attemptTimeoutMs: How long to try joining before giving up (prevent blocking forever)
   bool join(uint32_t attemptTimeoutMs = 60000);
 
+  // Switch between LoRaWAN device classes
   bool setClass(RAK_LORA_CLASS classType);
+  // Register the periodic uplink callback and start timers
   bool setupTimers(void (*uplinkRoutine)());
 
-  // RUI3 Callback signature
+  // RUI3 callback invoked whenever a downlink payload arrives
   void onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload);
 
+  // Send an uplink payload with the given size and port
   bool send(uint8_t dataSize, uint8_t *data, uint8_t fPort);
+  // Return the current uplink interval derived from duty-cycle settings
   uint32_t getUplinkIntervalMs();
 
 private:
-  // Helper to process internal logic changes
+  // Persist the new duty-cycle index and refresh timers accordingly
   void processDutyCycleChange(uint8_t newIndex);
 
   uint8_t _devEui[8];
