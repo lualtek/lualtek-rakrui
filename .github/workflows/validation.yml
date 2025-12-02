@@ -2,7 +2,7 @@ name: Arduino Library Validation
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
 
 # Cancel any previous runs of this workflow
@@ -14,4 +14,5 @@ jobs:
   lint_build_test:
     name: Lint, Build and Test
     uses: lualtek/workflows/.github/workflows/arduino_rak_library_validation.yml@master
-
+    with:
+      example_folder: examples/Basic
