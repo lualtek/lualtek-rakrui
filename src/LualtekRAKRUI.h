@@ -16,16 +16,8 @@ enum DownlinkPort : uint8_t
 class LualtekRAKRUI
 {
 public:
-    // Construct using the module DevEUI stored in flash
+  // Construct using the module DevEUI stored in flash
   LualtekRAKRUI(
-      const uint8_t appEui[8],
-      const uint8_t appKey[16],
-      uint8_t defaultDutyCycleIndex,
-      Stream *debugStream);
-
-    // Construct with an explicit DevEUI for OTAA joins
-  LualtekRAKRUI(
-      const uint8_t devEui[8],
       const uint8_t appEui[8],
       const uint8_t appKey[16],
       uint8_t defaultDutyCycleIndex,
@@ -54,10 +46,8 @@ private:
   // Persist the new duty-cycle index and refresh timers accordingly
   void processDutyCycleChange(uint8_t newIndex);
 
-  uint8_t _devEui[8];
   uint8_t _appEui[8];
   uint8_t _appKey[16];
-  bool _hasCustomDevEui;
 
   Stream *_debugStream;
 

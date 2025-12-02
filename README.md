@@ -126,7 +126,7 @@ api.lorawan.registerRecvCallback(onDownlinkReceived);
 
 The LualtekRAKRUI library supports the following downlink commands:
 
-- **Change Duty Cycle**: Send a downlink message with `fPort` set to `DOWNLINK_ACTION_CHANGE_INTERVAL_PORT` (3). The payload (first byte) determines the new interval:
+- **Change Duty Cycle**: Send a downlink message with `fPort` set to `PORT_CHANGE_INTERVAL` (3). The payload (first byte) determines the new interval:
 
   - `0`: 60 minutes
   - `1`: 40 minutes
@@ -139,7 +139,7 @@ The LualtekRAKRUI library supports the following downlink commands:
   - `8`: 12 hours
   - `9`: 24 hours
 
-- **Reboot**: Send a downlink message with `fPort` set to `DOWNLINK_ACTION_REJOIN_PORT` (10). No payload is required.
+- **Reboot**: Send a downlink message with `fPort` set to `PORT_REJOIN` (10). No payload is required.
 
 ### Scheduling Uplink Transmissions
 

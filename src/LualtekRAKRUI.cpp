@@ -6,24 +6,8 @@ LualtekRAKRUI::LualtekRAKRUI(
     uint8_t defaultDutyCycleIndex,
     Stream *debugStream)
     : _debugStream(debugStream),
-      _dutyHandler(defaultDutyCycleIndex),
-      _hasCustomDevEui(false)
+      _dutyHandler(defaultDutyCycleIndex)
 {
-  memcpy(_appEui, appEui, 8);
-  memcpy(_appKey, appKey, 16);
-}
-
-LualtekRAKRUI::LualtekRAKRUI(
-    const uint8_t devEui[8],
-    const uint8_t appEui[8],
-    const uint8_t appKey[16],
-    uint8_t defaultDutyCycleIndex,
-    Stream *debugStream)
-    : _debugStream(debugStream),
-      _dutyHandler(defaultDutyCycleIndex),
-      _hasCustomDevEui(true)
-{
-  memcpy(_devEui, devEui, 8);
   memcpy(_appEui, appEui, 8);
   memcpy(_appKey, appKey, 16);
 }
@@ -51,9 +35,14 @@ void LualtekRAKRUI::processDutyCycleChange(uint8_t newIndex)
 
 void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
 {
+  if (!payload)
+  {
+    return;
+  }
+
   if (payload->Port == PORT_CHANGE_INTERVAL)
   {
-    if (payload->BufferSize > 0)
+    if (payload->BufferSize > 0 && payload->Buffer != nullptr)
     {
       _debugStream->println(F("DL: Change Duty Cycle"));
       processDutyCycleChange(payload->Buffer[0]);
@@ -87,12 +76,6 @@ bool LualtekRAKRUI::setup()
     return false;
   if (!api.lorawan.appkey.set(_appKey, 16))
     return false;
-
-  if (_hasCustomDevEui)
-  {
-    if (!api.lorawan.deui.set(_devEui, 8))
-      return false;
-  }
 
   if (!api.lorawan.band.set(RAK_REGION_EU868))
     return false;
