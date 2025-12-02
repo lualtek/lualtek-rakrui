@@ -59,7 +59,7 @@ void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
   }
   else if (payload->Port == PORT_TURN_OFF_MAGNET && _powerMode == POWER_MODE_MAGNET)
   {
-    _debugStream->println(F("DL: Turn Off Magnet Request. Rebooting..."));
+    _debugStream->println(F("DL: Turn Off Magnet Request. Turning off..."));
     _magnetHandler.turnOff();
   }
 }

@@ -15,7 +15,7 @@ const uint8_t appKey[16] = {0xAC, 0x1F, 0x09, 0xFF, 0xFE, 0x05, 0x66, 0x12, 0xAC
 // - AppEUI, AppKey
 // - Default Duty Cycle (e.g., MINUTES_20)
 // - Pointer to Serial for debug output
-LualtekRAKRUI node(appEui, appKey, MINUTES_20, &Serial);
+LualtekRAKRUI node(appEui, appKey, MINUTES_20, POWER_MODE_CONNECTOR, &Serial);
 
 // ==========================================
 // 3. Uplink Routine (Timer Callback)

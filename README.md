@@ -52,8 +52,9 @@ const uint8_t appEui[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const uint8_t appKey[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // Initialize with AppEUI, AppKey, Default Duty Cycle, and Debug Stream
+// The powerMode parameter should be POWER_MODE_MAGNET for boards with magnetic latch circuits (Lualtek I/O v2) or POWER_MODE_CONNECTOR for standard connector-powered boards.
 // Example: Default 20 minutes duty cycle
-LualtekRAKRUI lualtek(appEui, appKey, MINUTES_20, &Serial);
+LualtekRAKRUI lualtek(appEui, appKey, MINUTES_20, POWER_MODE_MAGNET, &Serial);
 ```
 
 ### Configuration and Setup
@@ -76,10 +77,11 @@ void setup() {
 ### Joining the LoRaWAN Network
 
 To join the LoRaWAN network using OTAA, call the `join()` method. You can optionally pass a timeout in milliseconds (default is 60000ms).
+The second optional parameter allows you to specify whether to continue join attempts indefinitely until successful.
 
 ```cpp
 // Try to join with a 60 second timeout
-bool success = lualtek.join(60000);
+bool success = lualtek.join(60000, JOIN_FOREVER);
 
 if (success) {
   // Join successful, proceed with data transmissions
@@ -140,6 +142,7 @@ The LualtekRAKRUI library supports the following downlink commands:
   - `9`: 24 hours
 
 - **Reboot**: Send a downlink message with `fPort` set to `PORT_REJOIN` (10). No payload is required.
+- **Turn Off Magnet**: Send a downlink message with `fPort` set to `PORT_TURN_OFF_MAGNET` (20). Only applicable when using `POWER_MODE_MAGNET`.
 
 ### Scheduling Uplink Transmissions
 
