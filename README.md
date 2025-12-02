@@ -157,4 +157,4 @@ bool success = lualtek.setupTimers(uplinkRoutine);
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE)
