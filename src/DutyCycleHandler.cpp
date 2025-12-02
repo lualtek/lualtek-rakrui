@@ -1,31 +1,64 @@
 #include "DutyCycleHandler.h"
-#include "SmartFlash.h"
 
-SmartFlash smartflash;
+// Define table locally to avoid duplication in translation units
+static const uint32_t DUTY_CYCLE_TABLE_MS[] = {
+    3600000,  // 60 min
+    2400000,  // 40 min
+    1800000,  // 30 min
+    1200000,  // 20 min
+    900000,   // 15 min
+    600000,   // 10 min
+    300000,   // 5 min
+    60000,    // 1 min
+    43200000, // 12 hours
+    86400000  // 24 hours
+};
 
-DutyCycleHandler::DutyCycleHandler(lualtek_dowlink_command_dutycycle_index_t defaultDutyCycleIndex)
-    : defaultDutyCycleIndex(defaultDutyCycleIndex),
-      uplinkInterval(dutyCycleCommandTable[defaultDutyCycleIndex]),
-      previousMillis(0)
+DutyCycleHandler::DutyCycleHandler(uint8_t defaultIndex)
+    : _currentIndex(defaultIndex), _defaultIndex(defaultIndex)
 {
-  // Setup duty cycle from flash memory if available or use default
-  uint8_t uplinkIntervalFlashIndex = smartflash.getUplinkIntervalIndex();
-  changeDutyCycle(isDutyCycleIndex(uplinkIntervalFlashIndex) ? dutyCycleCommandTable[uplinkIntervalFlashIndex] : MINUTES_20_IN_MILLISECONDS);
-}
-
-bool DutyCycleHandler::isDutyCycleIndex(unsigned int commandIndex)
-{
-  return commandIndex >= 0 && commandIndex <= sizeof(dutyCycleCommandTable) - 1;
-}
-
-void DutyCycleHandler::changeDutyCycle(int commandIndex)
-{
-  if (!isDutyCycleIndex(commandIndex))
+  // Sanity check default
+  if (!isValidIndex(_defaultIndex))
   {
-    return;
+    _defaultIndex = MINUTES_20; // Safe fallback
   }
 
-  uplinkInterval = dutyCycleCommandTable[commandIndex];
-  uint8_t commandIndexBuffer[1] = {commandIndex};
-  smartflash.saveUplinkIntervalIndex(commandIndex);
+  if (!isValidIndex(_currentIndex))
+  {
+    _currentIndex = _defaultIndex;
+  }
+}
+
+bool DutyCycleHandler::isValidIndex(uint8_t index) const
+{
+  return index < (sizeof(DUTY_CYCLE_TABLE_MS) / sizeof(DUTY_CYCLE_TABLE_MS[0]));
+}
+
+uint32_t DutyCycleHandler::getIntervalMs(uint8_t index) const
+{
+  if (isValidIndex(index))
+  {
+    return DUTY_CYCLE_TABLE_MS[index];
+  }
+  return DUTY_CYCLE_TABLE_MS[_defaultIndex];
+}
+
+uint32_t DutyCycleHandler::getCurrentIntervalMs() const
+{
+  return getIntervalMs(_currentIndex);
+}
+
+uint8_t DutyCycleHandler::getCurrentIndex() const
+{
+  return _currentIndex;
+}
+
+bool DutyCycleHandler::setCycle(uint8_t index)
+{
+  if (isValidIndex(index))
+  {
+    _currentIndex = index;
+    return true;
+  }
+  return false;
 }

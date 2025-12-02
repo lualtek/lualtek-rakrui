@@ -3,124 +3,75 @@
 
 #include <Arduino.h>
 #include "DutyCycleHandler.h"
+#include "SmartFlash.h"
+#include "MagnetHandler.h"
 
-// Enumeration for LoRaWAN downlink command ports
-enum lualtek_downlink_command_ports_t
+enum DownlinkPort : uint8_t
 {
-  DOWNLINK_ACTION_COMMAND_PORT = 1,
-  DOWNLINK_ACTION_CHANGE_INTERVAL_PORT = 3,
-  DOWNLINK_ACTION_REJOIN_PORT = 10
+  PORT_ACTION = 1,
+  PORT_CHANGE_INTERVAL = 3,
+  PORT_REJOIN = 10,
+  PORT_TURN_OFF_MAGNET = 20
 };
 
-/**
- * @brief Represents the LualtekRAKRUI LoRaWAN module for Arduino.
- */
+enum JoinBehavior : uint8_t
+{
+  JOIN_FOREVER = 0,
+  JOIN_ONCE = 1
+};
+
+enum PowerModeKind : uint8_t
+{
+  POWER_MODE_MAGNET = 0,
+  POWER_MODE_CONNECTOR = 1
+};
+
 class LualtekRAKRUI
 {
 public:
-  /**
-   * @brief Creates an instance of LualtekRAKRUI.
-   * @param appEui The application EUI.
-   * @param appKey The application key.
-   * @param dutyCycleIndex The duty cycle index.
-   * @param debugStream Debug stream.
-   */
+  // Construct using the module DevEUI stored in flash
   LualtekRAKRUI(
       const uint8_t appEui[8],
       const uint8_t appKey[16],
-      lualtek_dowlink_command_dutycycle_index_t dutyCycleIndex,
+      uint8_t defaultDutyCycleIndex,
+      PowerModeKind powerMode,
       Stream *debugStream);
 
-  /**
-   * @brief Creates an instance of LualtekRAKRUI with a specified device EUI.
-   * @param devEui The device EUI.
-   * @param appEui The application EUI.
-   * @param appKey The application key.
-   * @param dutyCycleIndex The duty cycle index.
-   * @param debugStream Debug stream.
-   */
-  LualtekRAKRUI(
-      const uint8_t devEui[8],
-      const uint8_t appEui[8],
-      const uint8_t appKey[16],
-      lualtek_dowlink_command_dutycycle_index_t dutyCycleIndex,
-      Stream *debugStream);
-
-  /**
-   * @brief Initializes the LoRaWAN module.
-   * @return True if the setup is successful; otherwise, false.
+  /** Initialize peripherals, flash and duty-cycle state
+   * NOTE: This should be called after debugSerial.begin() and a delay to allow the serial port to stabilize
    */
   bool setup();
 
-  /**
-   * @brief Joins the LoRaWAN network.
-   * @return True if the join is successful; otherwise, false.
-   */
-  bool join();
+  // attemptTimeoutMs: How long to try joining before giving up (prevent blocking forever)
+  bool join(uint32_t attemptTimeoutMs = 60000, JoinBehavior behavior = JOIN_FOREVER);
 
-  /**
-   * @brief Sets the LoRaWAN device class.
-   * @param classType The device class type.
-   * @return True if successful; otherwise, false.
-   */
+  // Switch between LoRaWAN device classes
   bool setClass(RAK_LORA_CLASS classType);
-
-  /**
-   * @brief Sets up timers for periodic tasks.
-   * @param uplinkRoutine The callback function for the periodic task.
-   * @return True if successful; otherwise, false.
-   */
+  // Register the periodic uplink callback and start timers
   bool setupTimers(void (*uplinkRoutine)());
 
-  /**
-   * @brief Handles downlink messages received from the LoRaWAN network.
-   * @param payload The received payload.
-   */
+  // RUI3 callback invoked whenever a downlink payload arrives
   void onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload);
 
-  /**
-   * @brief Handles a change in duty cycle based on the command index.
-   * @param commandIndex The command index for duty cycle change.
-   */
-  void handleChangeDutyCycle(int commandIndex);
-
-  /**
-   * @brief Sends a message over the LoRaWAN network.
-   * @param dataSize The size of the message.
-   * @param data The message data.
-   * @param fPort The port for the message.
-   * @return True if the send is successful; otherwise, false.
-   */
+  // Send an uplink payload with the given size and port
   bool send(uint8_t dataSize, uint8_t *data, uint8_t fPort);
-
-  /**
-   * @brief Gets the uplink interval.
-   * @return The uplink interval in milliseconds.
-   */
-  int getUplinkInterval();
-
-  /**
-   * @brief Gets the battery voltage in mV.
-   * @return The battery level as an integer.
-   */
-  int getBatteryVoltage();
-
-  /*
-   * To use with RAK19007 LUT
-   * returns smoothed battery values, otherwise underestimated if one-shot sampled
-   */
-  int getBatteryVoltage_10x();
+  // Return the current uplink interval derived from duty-cycle settings
+  uint32_t getUplinkIntervalMs();
 
 private:
-  uint8_t devEui[8];
-  uint8_t appEui[8];
-  uint8_t appKey[16];
-  uint8_t assigned_dev_addr[4] = {0};
-  lualtek_dowlink_command_dutycycle_index_t defaultDutyCycleIndex;
-  unsigned long uplinkInterval;
+  // Persist the new duty-cycle index and refresh timers accordingly
+  void processDutyCycleChange(uint8_t newIndex);
 
-  Stream *debugStream;
-  DutyCycleHandler dutyCycleHandler;
+  uint8_t _appEui[8];
+  uint8_t _appKey[16];
+  PowerModeKind _powerMode;
+
+  Stream *_debugStream;
+
+  // Composition: These are members of the main class
+  DutyCycleHandler _dutyHandler;
+  SmartFlash _flash;
+  MagnetHandler _magnetHandler;
 };
 
 #endif
