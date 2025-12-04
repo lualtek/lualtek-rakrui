@@ -42,8 +42,12 @@ public:
    */
   bool setup();
 
-  // attemptTimeoutMs: How long to try joining before giving up (prevent blocking forever)
-  bool join(uint32_t attemptTimeoutMs = 60000, JoinBehavior behavior = JOIN_FOREVER);
+  /**
+   * @brief Attempts to join the network.
+   * @param behavior JOIN_ONCE or JOIN_FOREVER.
+   * @param maxAttempts Max number of TX packets to send if behavior is JOIN_ONCE.
+   */
+  bool join(JoinBehavior behavior = JOIN_FOREVER, uint8_t maxAttempts = 18);
 
   // Switch between LoRaWAN device classes
   bool setClass(RAK_LORA_CLASS classType);
@@ -63,6 +67,9 @@ private:
   void processDutyCycleChange(uint8_t newIndex);
   void startupBlinkingFeedback();
   void turnOffBlinkingFeedback();
+
+  // Returns true if joined, false if limit reached without join
+  bool executeJoinSequence(uint8_t limitPackets);
 
   uint8_t _appEui[8];
   uint8_t _appKey[16];

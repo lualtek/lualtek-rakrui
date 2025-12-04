@@ -69,6 +69,64 @@ void LualtekRAKRUI::turnOffBlinkingFeedback()
   digitalWrite(SCL, LOW);
 }
 
+bool LualtekRAKRUI::executeJoinSequence(uint8_t limitPackets)
+{
+  const int8_t START_DR = 5;    // SF7 (Fastest)
+  const int8_t MIN_DR = 0;      // SF12 (Slowest)
+  const int RETRIES_PER_DR = 3; // 3 tries per DR
+
+  int8_t currentDr = START_DR;
+  int drAttempts = 0;
+  int totalSent = 0;
+
+  // Reset DR to start
+  api.lorawan.dr.set(currentDr);
+  _debugStream->println(F("Starting Join Sequence..."));
+
+  while (totalSent < limitPackets)
+  {
+    // 1. Check if already joined (Checks success of PREVIOUS iteration)
+    if (api.lorawan.njs.get() == 1)
+      return true;
+
+    // 2. Prepare Data Rate (Logic: 3 tries then lower speed)
+    if (totalSent > 0)
+    {
+      drAttempts++;
+      if (drAttempts >= RETRIES_PER_DR)
+      {
+        drAttempts = 0;
+        currentDr--;
+
+        // If we go below DR0, cycle back to top
+        if (currentDr < MIN_DR)
+          currentDr = START_DR;
+
+        _debugStream->printf("Join: Lowering to DR%d\r\n", currentDr);
+        api.lorawan.dr.set(currentDr);
+      }
+    }
+    else
+    {
+      _debugStream->printf("Join: Starting at DR%d\r\n", currentDr);
+    }
+
+    // 3. Send Join Request
+    api.lorawan.join();
+    totalSent++;
+    _debugStream->printf("Join: Packet Sent (%d/%d)\r\n", totalSent, limitPackets);
+
+    // 4. Blocking Wait for RX1 (5s) and RX2 (6s)
+    // We wait 8s to be safe.
+    delay(8000);
+  }
+
+  // 5. Final Check
+  // If the very last packet succeeded during the last delay(8000),
+  // the loop exits because totalSent == limit, so we must check one last time.
+  return (api.lorawan.njs.get() == 1);
+}
+
 void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
 {
   if (!payload)
@@ -165,68 +223,69 @@ bool LualtekRAKRUI::setup()
   return true;
 }
 
-bool LualtekRAKRUI::join(uint32_t attemptTimeoutMs, JoinBehavior behavior)
+bool LualtekRAKRUI::join(JoinBehavior behavior, uint8_t maxAttempts)
 {
-  // SF12 (DR 0) is very slow and consumes high airtime.
-  // Consider allowing ADR to handle this, or start at DR_0 and move up.
-  api.lorawan.dr.set(0);
+  _debugStream->println(F("LoRaWAN Join requested"));
 
-  _debugStream->println(F("LoRaWAN Joining..."));
+  // CONSTANTS FOR LOGIC
+  // DR5 to DR0 is 6 steps. 3 tries per step = 18 packets for a full sweep.
+  const uint8_t FULL_SWEEP_PACKETS = 18;
 
-  if (!api.lorawan.join())
+  while (true)
   {
-    _debugStream->println(F("Err: Join command failed"));
-    return false;
-  }
+    // Determine how many packets to try in this cycle
+    uint8_t limit = maxAttempts;
 
-  unsigned long startAttempt = millis();
-
-  // Non-blocking wait (with timeout)
-  while (api.lorawan.njs.get() == 0)
-  {
-    if (millis() - startAttempt > attemptTimeoutMs)
+    // If JOIN_FOREVER, we ignore the user's maxAttempts and run a full sweep
+    // (DR5 -> DR0) before sleeping.
+    if (behavior == JOIN_FOREVER)
     {
-      if (behavior == JOIN_ONCE)
-      {
-        _debugStream->println(F("Err: Join Timeout. Giving up."));
-        return false;
-      }
-
-      _debugStream->println(F("Err: Join Timeout. Going to sleep for 2 minutes then try again."));
-      api.system.sleep.all(120000); // Sleep for 2 minutes
-      startAttempt = millis();
+      limit = FULL_SWEEP_PACKETS;
     }
 
-    api.lorawan.join();
-    // Yield to system background tasks
-    delay(5000);
+    // Execute the sequence
+    bool joined = executeJoinSequence(limit);
+
+    // 1. Success
+    if (joined)
+    {
+      // Post-Join Configuration
+      if (!api.lorawan.adr.set(true))
+      {
+        _debugStream->println(F("Warning: ADR enable failed"));
+      }
+
+      if (!api.lorawan.rety.set(1))
+      {
+        _debugStream->println(F("Warning: Set retry failed"));
+      }
+
+      if (!api.lorawan.cfm.set(false))
+      {
+        _debugStream->println(F("Warning: Set confirm failed"));
+      }
+
+      uint8_t assigned_addr[4];
+      api.lorawan.daddr.get(assigned_addr, 4);
+      _debugStream->printf("Joined! DevAddr: %02X%02X%02X%02X\r\n",
+                           assigned_addr[0], assigned_addr[1], assigned_addr[2], assigned_addr[3]);
+
+      return true;
+    }
+
+    // 2. Failure Handling
+    if (behavior == JOIN_ONCE)
+    {
+      _debugStream->printf("Err: Join failed after %d attempts. Giving up.\r\n", maxAttempts);
+      return false;
+    }
+
+    // 3. JOIN_FOREVER Loop
+    _debugStream->println(F("Err: Full join sweep failed. Deep sleep 2 mins, then retrying..."));
+
+    // Deep sleep to save battery before trying the sequence again
+    api.system.sleep.all(120000);
   }
-
-  // Post-Join Configuration
-  if (!api.lorawan.adr.set(true))
-  {
-    _debugStream->println(F("Warning: ADR enable failed"));
-  }
-
-  if (!api.lorawan.rety.set(1))
-  {
-    _debugStream->println(F("Warning: Set retry failed"));
-  }
-
-  if (!api.lorawan.cfm.set(false))
-  {
-    _debugStream->println(F("Warning: Set confirm failed"));
-  }
-
-  // Debug Info
-  uint8_t assigned_addr[4];
-  api.lorawan.daddr.get(assigned_addr, 4);
-
-  _debugStream->printf("Joined! DevAddr: %02X%02X%02X%02X\r\n",
-                       assigned_addr[0], assigned_addr[1], assigned_addr[2], assigned_addr[3]);
-  _debugStream->printf("Uplink Interval: %lu ms\r\n", _dutyHandler.getCurrentIntervalMs());
-
-  return true;
 }
 
 bool LualtekRAKRUI::setClass(RAK_LORA_CLASS classType)
