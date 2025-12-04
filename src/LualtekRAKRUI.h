@@ -61,6 +61,8 @@ public:
 private:
   // Persist the new duty-cycle index and refresh timers accordingly
   void processDutyCycleChange(uint8_t newIndex);
+  void startupBlinkingFeedback();
+  void turnOffBlinkingFeedback();
 
   uint8_t _appEui[8];
   uint8_t _appKey[16];

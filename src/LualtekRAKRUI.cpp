@@ -36,6 +36,39 @@ void LualtekRAKRUI::processDutyCycleChange(uint8_t newIndex)
   }
 }
 
+// Private helper to handle the LED feedback at startup
+void LualtekRAKRUI::startupBlinkingFeedback()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(SCL, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(SCL, HIGH);
+  delay(1000);
+
+  for (int i = 0; i < 5; i++)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(SCL, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(SCL, LOW);
+    delay(100);
+  }
+}
+
+// Private helper to turn off LED feedback
+void LualtekRAKRUI::turnOffBlinkingFeedback()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(SCL, OUTPUT);
+
+  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(SCL, HIGH);
+  delay(4000);
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(SCL, LOW);
+}
+
 void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
 {
   if (!payload)
@@ -60,6 +93,7 @@ void LualtekRAKRUI::onDownlinkReceived(SERVICE_LORA_RECEIVE_T *payload)
   else if (payload->Port == PORT_TURN_OFF_MAGNET && _powerMode == POWER_MODE_MAGNET)
   {
     _debugStream->println(F("DL: Turn Off Magnet Request. Turning off..."));
+    turnOffBlinkingFeedback();
     _magnetHandler.turnOff();
   }
 }
@@ -74,6 +108,7 @@ bool LualtekRAKRUI::setup()
     _magnetHandler.begin();
   }
 
+  startupBlinkingFeedback();
   _debugStream->println(F("--- Lualtek RAKRUI Init ---"));
 
   // 1. Restore Duty Cycle from Flash

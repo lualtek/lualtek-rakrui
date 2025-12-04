@@ -6,6 +6,9 @@ send	KEYWORD2
 setClass	KEYWORD2
 setup	KEYWORD2
 setupTimers	KEYWORD2
+MagnetHandler	KEYWORD1
+begin	KEYWORD2
+turnOff	KEYWORD2
 SmartFlash	KEYWORD1
 readUplinkIndex	KEYWORD2
 saveUplinkIndex	KEYWORD2
